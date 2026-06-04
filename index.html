@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHSO Tracking System - NAE Manages</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="min-h-screen">
+
+    <!-- Login Section -->
+    <div id="login-section" class="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
+        <!-- Floating glow background (defined in CSS) -->
+        <div class="login-bg-container">
+            <div class="login-glow-blob-1"></div>
+            <div class="login-glow-blob-2"></div>
+        </div>
+
+        <!-- Glassmorphism Card -->
+        <div class="glass-login-card p-10 rounded-3xl w-full max-w-md border border-slate-700/30 text-white z-10 transition duration-300 transform hover:scale-[1.01] animate-fade-in-up">
+            <div class="text-center mb-8">
+                <div class="bg-gradient-to-tr from-blue-500 to-indigo-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20 transform rotate-6 hover:rotate-12 transition duration-300">
+                    <i class="fas fa-hospital-user text-white text-4xl"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">NHSO Tracking</h1>
+                <p class="text-slate-400 text-sm font-medium">ลงชื่อเข้าใช้งานเข้าสู่ระบบ</p>
+            </div>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">ชื่อผู้ใช้งาน</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                            <i class="fas fa-user text-sm"></i>
+                        </span>
+                        <input type="text" id="username"
+                            class="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none transition text-white placeholder-slate-500 text-sm"
+                            placeholder="Username" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">รหัสผ่าน</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                            <i class="fas fa-lock text-sm"></i>
+                        </span>
+                        <input type="password" id="password"
+                            class="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:outline-none transition text-white placeholder-slate-500 text-sm"
+                            placeholder="Password" required>
+                    </div>
+                </div>
+                <button type="submit"
+                    class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl transition duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/20 active:translate-y-0 cursor-pointer">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+            <p id="login-error" class="mt-4 bg-red-500/10 border border-red-500/20 text-red-300 py-2.5 px-4 rounded-xl text-sm text-center font-medium hidden">
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Section (Hidden by default) -->
+    <div id="dashboard-section" class="hidden min-h-screen flex flex-col">
+        <!-- Navbar -->
+        <nav class="sticky top-0 navbar-theme backdrop-blur-md border-b px-6 py-4 flex justify-between items-center z-40 shadow-sm">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-blue-500 to-indigo-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/10">
+                    <i class="fas fa-microscope text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-bold tracking-tight flex items-baseline">
+                        NHSO Tracker 
+                        <span class="ml-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded-md">v1.1</span>
+                    </span>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">National Health Security Office Monitoring</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3.5">
+                <div class="hidden sm:flex flex-col items-end">
+                    <span id="user-display" class="text-sm font-semibold"></span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Administrator</span>
+                </div>
+                <div class="w-px h-6 bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer">
+                    <i class="fas fa-moon text-sm" id="theme-icon"></i>
+                </button>
+                <button id="logout-btn" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                </button>
+            </div>
+        </nav>
+
+        <main class="p-6 max-w-7xl w-full mx-auto flex-1 space-y-6 animate-fade-in-up">
+            <!-- View Mode Switcher -->
+            <div class="flex space-x-2 border-b border-slate-200/60 dark:border-slate-800/80 pb-1">
+                <button id="tab-tracker" class="px-4 py-2.5 text-xs font-extrabold tracking-wider border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 focus:outline-none transition cursor-pointer flex items-center space-x-2 uppercase">
+                    <i class="fas fa-tasks"></i>
+                    <span>ระบบตรวจสอบ (NHSO Tracker)</span>
+                </button>
+                <button id="tab-grafana" class="px-4 py-2.5 text-xs font-extrabold tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 focus:outline-none transition cursor-pointer flex items-center space-x-2 uppercase">
+                    <i class="fas fa-chart-line"></i>
+                    <span>ตารางวิเคราะห์คำสั่ง SQL (Grafana Panel)</span>
+                </button>
+                <button id="tab-embed-grafana" class="px-4 py-2.5 text-xs font-extrabold tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 focus:outline-none transition cursor-pointer flex items-center space-x-2 uppercase">
+                    <i class="fas fa-desktop"></i>
+                    <span>แดชบอร์ด Grafana (Embed)</span>
+                </button>
+            </div>
+
+            <!-- Tracker View Container (Original View) -->
+            <div id="tracker-view-container" class="space-y-6">
+                <!-- Controls Card -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                        <!-- Column 1: Date picker -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">วันที่ต้องการตรวจสอบ (HOSxP)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </span>
+                                <input type="date" id="visit-date"
+                                    class="w-full pl-10 pr-4 h-[46px] input-theme rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition text-sm font-semibold cursor-pointer">
+                            </div>
+                        </div>
+                        
+                        <!-- Column 2: File Upload dropzone -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">อัปโหลดไฟล์ Excel สปสช.</label>
+                            <div id="dropzone" class="dropzone-area rounded-xl px-4 h-[46px] flex items-center justify-between cursor-pointer border border-dashed relative transition duration-150">
+                                <!-- Hidden input -->
+                                <input type="file" id="excel-file" accept=".xlsx, .xls" class="hidden">
+                                <div class="flex items-center space-x-2.5 pointer-events-none text-slate-500 dark:text-slate-400 overflow-hidden" id="dropzone-content">
+                                    <i class="fas fa-file-excel text-lg text-emerald-500 shrink-0"></i>
+                                    <span id="dropzone-text" class="text-xs font-semibold text-slate-600 dark:text-slate-300 truncate">ลากวางไฟล์ที่นี่ หรือ คลิกเพื่อเลือก</span>
+                                </div>
+                                <i class="fas fa-cloud-upload-alt text-sm text-slate-400 shrink-0 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Action Buttons (Sync) -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">การประมวลผลข้อมูล</label>
+                            <div class="h-[46px] flex space-x-2">
+                                <button id="api-sync-btn"
+                                    class="btn-secondary-soft bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 rounded-xl flex items-center justify-center space-x-2 transition cursor-pointer text-xs"
+                                    title="ดึงข้อมูลจาก สปสช. อัตโนมัติผ่าน API">
+                                    <i class="fas fa-robot text-base"></i>
+                                    <span class="hidden lg:inline">Auto Sync</span>
+                                </button>
+                                <button id="paste-sync-btn"
+                                    class="btn-secondary-soft w-1/4 h-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold px-3 rounded-xl flex items-center justify-center space-x-2 transition hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer text-xs"
+                                    title="วางข้อมูลที่ก๊อปมา (Ctrl+V)">
+                                    <i class="fas fa-paste text-base"></i>
+                                </button>
+                                <button id="sync-btn"
+                                    class="btn-primary-glow flex-1 h-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-4 rounded-xl flex items-center justify-center space-x-2 transition shadow-md shadow-emerald-500/25 dark:shadow-emerald-500/15 cursor-pointer text-sm">
+                                    <i class="fas fa-sync-alt text-base"></i>
+                                    <span>เริ่มประมวลผล (Sync)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Card 1: Total Users -->
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-blue-500 flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ผู้รับบริการ (คน/Visit)</p>
+                            <h3 id="stat-total" class="text-2xl font-bold tracking-tight">0 <span class="text-base font-medium text-slate-500 dark:text-slate-400">/ 0</span></h3>
+                        </div>
+                        <div class="bg-blue-50 dark:bg-blue-950/40 w-12 h-12 rounded-xl flex items-center justify-center text-blue-500 dark:text-blue-400">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 2: Authen not open -->
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-red-500 flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ยังไม่เปิด Authen</p>
+                            <h3 id="stat-red" class="text-2xl font-bold text-red-600 dark:text-red-400 tracking-tight">0</h3>
+                        </div>
+                        <div class="bg-red-50 dark:bg-red-950/40 w-12 h-12 rounded-xl flex items-center justify-center text-red-500 dark:text-red-400">
+                            <i class="fas fa-exclamation-circle text-xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 3: Waiting to close Endpoint -->
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-amber-500 flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">รอปิด Endpoint</p>
+                            <h3 id="stat-yellow" class="text-2xl font-bold text-amber-600 dark:text-amber-400 tracking-tight">0</h3>
+                        </div>
+                        <div class="bg-amber-50 dark:bg-amber-950/40 w-12 h-12 rounded-xl flex items-center justify-center text-amber-500 dark:text-amber-400">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 4: Complete -->
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 shadow-sm flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">สมบูรณ์แล้ว</p>
+                            <h3 id="stat-green" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">0</h3>
+                        </div>
+                        <div class="bg-emerald-50 dark:bg-emerald-950/40 w-12 h-12 rounded-xl flex items-center justify-center text-emerald-500 dark:text-emerald-400">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Overview -->
+                <div id="weekly-summary-section" class="hidden space-y-3">
+                    <div class="flex justify-between items-center px-1">
+                        <h2 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">สรุปภาพรวม 7 วันล่าสุด</h2>
+                    </div>
+                    <div id="weekly-summary-container" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                        <!-- Weekly cards will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Table Card -->
+                <div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
+                    <div class="p-5 border-b border-slate-200/60 dark:border-slate-800/80 flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-slate-50/50 dark:bg-slate-900/40">
+                        <div>
+                            <h2 class="font-bold text-base">รายการผู้ป่วยสิทธิ สปสช.</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">แสดงรายละเอียดข้อมูลและสถานะการเคลมสิทธิ์</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <div class="relative w-full sm:w-60">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                                    <i class="fas fa-search text-xs"></i>
+                                </span>
+                                <input type="text" id="tracker-search-input" class="w-full pl-9 pr-4 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-lg focus:outline-none transition text-xs placeholder-slate-400 text-slate-700 dark:text-slate-200 shadow-sm" placeholder="ค้นหาชื่อ, เลขบัตร, VN, แผนก...">
+                            </div>
+                            <button id="export-error-btn" class="hidden text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/30 px-3.5 py-2 rounded-lg transition flex items-center shadow-sm border border-amber-500/10 dark:border-amber-900/30 cursor-pointer shrink-0">
+                                <i class="fas fa-file-export mr-1.5"></i> Export รายการรอแก้ไข
+                            </button>
+                            <button id="refresh-btn" class="btn-secondary-soft text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-3.5 py-2 rounded-lg transition flex items-center shadow-sm border border-blue-500/10 dark:border-blue-900/30 cursor-pointer shrink-0">
+                                <i class="fas fa-redo-alt mr-1.5"></i> รีเฟรช
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Table View -->
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-[1300px]">
+                            <thead id="tracking-table-thead">
+                                <tr class="bg-slate-100/60 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-slate-800/80 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+                                    <th class="py-3 px-4 w-36 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="vn">VN</th>
+                                    <th class="py-3 px-4 w-44 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="cid">เลขบัตรประชาชน</th>
+                                    <th class="py-3 px-4 w-44 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="nhso_authen_code">Authen Code</th>
+                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="pcode">PCode</th>
+                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="uc_money">UC Money</th>
+                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="claim_code">Claim Code</th>
+                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="authen_code_type">Authen Code Type</th>
+                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="pttype_note">PTType Note</th>
+                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="department">Department</th>
+                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="staff">เจ้าหน้าที่</th>
+                                    <th class="py-3 px-4 w-32 text-center cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="check_claimcode">ผลการเช็ค</th>
+                                    <th class="py-3 px-4 w-44 text-center cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="color_status">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tracking-table-body" class="text-sm divide-y divide-slate-100 dark:divide-slate-800/80 bg-transparent">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="no-data" class="p-16 text-center text-slate-500 dark:text-slate-400 hidden bg-transparent">
+                        <i class="fas fa-folder-open text-5xl text-slate-400 dark:text-slate-600 mb-3 animate-pulse-slow"></i>
+                        <p class="font-bold text-base">ไม่พบข้อมูลในระบบ</p>
+                        <p class="text-xs mt-1">กรุณาเลือกวันที่หรือนำเข้าข้อมูลที่ต้องการตรวจสอบ</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafana Custom SQL View Container -->
+            <div id="grafana-view-container" class="hidden space-y-6">
+                <!-- Query Config Panel -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex flex-col space-y-4">
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                            <div>
+                                <h2 class="font-bold text-lg flex items-center space-x-2">
+                                    <i class="fas fa-chart-line text-orange-500"></i>
+                                    <span>Grafana SQL Table Panel</span>
+                                </h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">เขียนคำสั่ง SQL Query เพื่อจัดตารางข้อมูลอิสระเหมือนในระบบ Grafana</p>
+                            </div>
+                            
+                            <!-- Parameters configuration -->
+                            <div class="flex flex-wrap items-center gap-3">
+                                <!-- DB selection -->
+                                <div class="flex flex-col space-y-1">
+                                    <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">เลือกฐานข้อมูล</label>
+                                    <select id="query-db-type" class="px-3 py-1.5 input-theme rounded-xl text-xs font-semibold focus:outline-none cursor-pointer h-[38px]">
+                                        <option value="hosxp" selected>HOSxP Database (Read-Only)</option>
+                                        <option value="tracker">Internal Tracker Database</option>
+                                    </select>
+                                </div>
+                                <!-- Date picker parameter -->
+                                <div class="flex flex-col space-y-1">
+                                    <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">ตัวแปรวันที่ ($__timeFilter)</label>
+                                    <input type="date" id="query-visit-date" class="px-3 py-1.5 input-theme rounded-xl text-xs font-semibold focus:outline-none cursor-pointer h-[38px]">
+                                </div>
+                                <!-- Hipdata Code parameter -->
+                                <div class="flex flex-col space-y-1">
+                                    <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">สิทธิ์ ($hipdata_code)</label>
+                                    <input type="text" id="query-hipdata" class="px-3 py-1.5 input-theme rounded-xl text-xs font-semibold focus:outline-none h-[38px] w-28" value="'UCS'" placeholder="'UCS','WEL'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template selection and operations -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/40">
+                            <div class="flex flex-col space-y-1">
+                                <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">เลือกคำสั่ง / แม่แบบ SQL</label>
+                                <select id="query-template-select" class="px-3 py-2 input-theme rounded-xl text-xs font-semibold focus:outline-none cursor-pointer w-full">
+                                    <option value="" disabled selected>-- โหลดคำสั่ง SQL --</option>
+                                </select>
+                            </div>
+                            <div class="flex space-x-2 self-end h-[38px]">
+                                <input type="text" id="new-query-name" class="flex-1 px-3 input-theme rounded-xl text-xs font-medium focus:outline-none" placeholder="ตั้งชื่อคำสั่งเพื่อบันทึก...">
+                                <button id="save-query-btn" class="px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1 transition cursor-pointer">
+                                    <i class="fas fa-save"></i>
+                                    <span>บันทึก</span>
+                                </button>
+                                <button id="delete-query-btn" class="px-3 bg-red-600/10 hover:bg-red-600/25 text-red-500 hover:text-red-400 font-bold rounded-xl text-xs flex items-center justify-center transition cursor-pointer" title="ลบคำสั่งปัจจุบัน">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SQL Code Editor -->
+                        <div class="flex flex-col space-y-2">
+                            <div class="flex justify-between items-center px-1">
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center space-x-2">
+                                    <i class="fas fa-code text-orange-500"></i>
+                                    <span>คำสั่ง SQL (Query Editor)</span>
+                                </label>
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500">Ctrl + Enter เพื่อสั่งรัน | รองรับ Macros ของ Grafana</span>
+                            </div>
+                            <div class="relative rounded-xl overflow-hidden border border-slate-300 dark:border-slate-800 shadow-inner">
+                                <textarea id="sql-editor" rows="12" class="w-full p-4 font-mono text-xs text-slate-100 bg-slate-900 focus:outline-none custom-scrollbar resize-y leading-relaxed" placeholder="SELECT * FROM vn_stat LIMIT 100"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Run & Execution status -->
+                        <div class="flex justify-between items-center">
+                            <div id="query-info-msg" class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                <!-- Dynamic message e.g. "กำลังแสดงผล 150 แถว ใช้เวลาประมวลผล 12ms" -->
+                            </div>
+                            <button id="run-query-btn" class="btn-primary-glow bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold px-6 py-2.5 rounded-xl flex items-center justify-center space-x-2 transition shadow-md shadow-orange-500/20 cursor-pointer text-sm">
+                                <i class="fas fa-play"></i>
+                                <span>Run Query</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Query Result Table -->
+                <div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
+                    <!-- Dynamic Table header controls -->
+                    <div class="p-5 border-b border-slate-200/60 dark:border-slate-800/80 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-slate-50/50 dark:bg-slate-900/40">
+                        <div>
+                            <h2 class="font-bold text-base flex items-center space-x-2">
+                                <i class="fas fa-table text-emerald-500"></i>
+                                <span>ผลลัพธ์การสืบค้น (Query Results)</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">ตารางแสดงผลเชิงไดนามิก รองรับการคลิกที่หัวตารางเพื่อจัดเรียงข้อมูล</p>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <div class="relative w-full sm:w-60">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                                    <i class="fas fa-search text-xs"></i>
+                                </span>
+                                <input type="text" id="query-search-input" class="w-full pl-9 pr-4 py-1.5 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none transition text-xs placeholder-slate-400" placeholder="ค้นหาข้อมูลในผลลัพธ์...">
+                            </div>
+                            <button id="query-export-btn" class="text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/80 px-3.5 py-2 rounded-lg transition flex items-center shadow-sm cursor-pointer shrink-0">
+                                <i class="fas fa-file-csv mr-1.5 text-emerald-500"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Table View -->
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-full">
+                            <thead id="query-table-head" class="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+                                <!-- Headers will be dynamically rendered -->
+                            </thead>
+                            <tbody id="query-table-body" class="text-xs divide-y divide-slate-100 dark:divide-slate-800/80 bg-transparent">
+                                <!-- Data rows will be dynamically rendered -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- No Data message -->
+                    <div id="query-no-data" class="p-16 text-center text-slate-500 dark:text-slate-400 bg-transparent">
+                        <i class="fas fa-database text-5xl text-slate-300 dark:text-slate-700 mb-3 animate-pulse-slow"></i>
+                        <p class="font-bold text-base">ไม่พบข้อมูลแสดงผล</p>
+                        <p class="text-xs mt-1">กรุณากดปุ่ม Run Query เพื่อแสดงตารางข้อมูลวิเคราะห์</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Embedded Grafana View Container -->
+            <div id="embed-grafana-view-container" class="hidden space-y-6">
+                <!-- Grafana Iframe Panel -->
+                <div class="glass-panel p-6 rounded-2xl flex flex-col space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="font-bold text-lg flex items-center space-x-2">
+                                <i class="fas fa-desktop text-blue-500"></i>
+                                <span>แดชบอร์ด Grafana (Embedded View)</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">สตรีมหน้าจอแดชบอร์ดหลักของระบบตรวจสอบสิทธิ์ตรงจาก Grafana</p>
+                        </div>
+                        <a href="https://khh.srakw.net/d/cdv2h2zc1d91ca/check-authen?orgId=1" target="_blank" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1">
+                            <span>เปิดในแท็บใหม่</span>
+                            <i class="fas fa-external-link-alt text-[10px]"></i>
+                        </a>
+                    </div>
+                    <div class="relative w-full h-[78vh] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 shadow-md">
+                        <iframe 
+                            src="https://khh.srakw.net/d/cdv2h2zc1d91ca/check-authen?orgId=1&kiosk=tv" 
+                            class="absolute inset-0 w-full h-full border-0" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+ 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-xs w-full border border-slate-100 dark:border-slate-800/50">
+            <div class="relative w-16 h-16 mb-4">
+                <div class="absolute inset-0 rounded-full border-4 border-blue-50 dark:border-slate-800"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-blue-600 dark:border-blue-400 border-t-transparent animate-spin"></div>
+            </div>
+            <p class="font-bold text-base">กำลังประมวลผลข้อมูล</p>
+            <p class="text-slate-500 dark:text-slate-400 text-xs mt-1 text-center font-medium">กรุณารอสักครู่ ระบบกำลังสื่อสารกับฐานข้อมูล...</p>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 w-12 h-12 rounded-full glass-panel shadow-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 active:scale-95 transition-all duration-300 z-50 cursor-pointer opacity-0 pointer-events-none translate-y-10">
+        <i class="fas fa-chevron-up text-lg"></i>
+    </button>
+ 
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
