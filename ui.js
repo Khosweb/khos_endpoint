@@ -1,6 +1,6 @@
 // ui.js
 
-// DOM Elements - Safely initialized
+// DOM Elements - Safely initialized on demand
 const getEls = () => {
     if (typeof document === 'undefined') return {};
     return {
@@ -20,8 +20,6 @@ const getEls = () => {
         exportBtn: document.getElementById('export-error-btn')
     };
 };
-
-const els = getEls();
 
 export const ui = {
     initTheme() {
@@ -49,6 +47,7 @@ export const ui = {
     },
 
     showLogin(message = '') {
+        const els = getEls();
         if (!els.loginSection) return;
         els.loginSection.classList.remove('hidden');
         els.dashboardSection.classList.add('hidden');
@@ -56,10 +55,11 @@ export const ui = {
     },
 
     showDashboard(userName) {
+        const els = getEls();
         if (!els.loginSection) return;
         els.loginSection.classList.add('hidden');
         els.dashboardSection.classList.remove('hidden');
-        els.userDisplay.textContent = `สวัสดี, ${userName}`;
+        if (els.userDisplay) els.userDisplay.textContent = `สวัสดี, ${userName}`;
         this.startClock();
     },
 
@@ -94,19 +94,22 @@ export const ui = {
     },
 
     showLoginError(msg) {
+        const els = getEls();
         if (!els.loginError) return;
         els.loginError.textContent = msg;
         els.loginError.classList.remove('hidden');
     },
 
     setLoading(isLoading) {
+        const els = getEls();
         if (!els.loadingOverlay) return;
         if (isLoading) els.loadingOverlay.classList.remove('hidden');
         else els.loadingOverlay.classList.add('hidden');
     },
 
     updateDropzoneUI(file) {
-        if (!els.dropzone) return;
+        const els = getEls();
+        if (!els.dropzone || !els.dropzoneText) return;
         if (file) {
             els.dropzoneText.textContent = `ไฟล์ที่เลือก: ${file.name}`;
             els.dropzoneText.className = "text-xs font-bold text-emerald-600 dark:text-emerald-400";
@@ -119,7 +122,9 @@ export const ui = {
     },
 
     renderTable(data, sortBy = '', sortDesc = false) {
-        if (typeof document === 'undefined' || !els.tableBody) return;
+        if (typeof document === 'undefined') return;
+        const els = getEls();
+        if (!els.tableBody) return;
         
         // Update table headers to show sorting indicators
         const headers = document.querySelectorAll('#tracking-table-thead th[data-sort]');
@@ -138,12 +143,12 @@ export const ui = {
 
         els.tableBody.innerHTML = '';
         if (!data || data.length === 0) {
-            els.noDataMsg.classList.remove('hidden');
+            if (els.noDataMsg) els.noDataMsg.classList.remove('hidden');
             if (els.exportBtn) els.exportBtn.classList.add('hidden'); // ซ่อนปุ่ม Export หากไม่มีข้อมูล
             return;
         }
         
-        els.noDataMsg.classList.add('hidden');
+        if (els.noDataMsg) els.noDataMsg.classList.add('hidden');
         
         // เช็คว่ามีรายการที่ผิดพลาดไหม เพื่อแสดง/ซ่อนปุ่ม Export
         const hasErrors = data.some(item => item.color_status === 'RED' || item.color_status === 'YELLOW');
@@ -201,6 +206,8 @@ export const ui = {
 
     updateStats(data) {
         if (!data) return;
+        const els = getEls();
+        if (!els.statTotal || !els.statRed || !els.statYellow || !els.statGreen) return;
         const uniquePersons = new Set(data.map(i => i.cid)).size;
         const totalVisits = data.length;
         const red = data.filter(i => i.color_status === 'RED').length;
