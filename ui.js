@@ -1,25 +1,32 @@
 // ui.js
 
-// DOM Elements
-const els = {
-    loginSection: document.getElementById('login-section'),
-    dashboardSection: document.getElementById('dashboard-section'),
-    userDisplay: document.getElementById('user-display'),
-    loginError: document.getElementById('login-error'),
-    loadingOverlay: document.getElementById('loading-overlay'),
-    dropzoneText: document.getElementById('dropzone-text'),
-    dropzone: document.getElementById('dropzone'),
-    tableBody: document.getElementById('tracking-table-body'),
-    noDataMsg: document.getElementById('no-data'),
-    statTotal: document.getElementById('stat-total'),
-    statRed: document.getElementById('stat-red'),
-    statYellow: document.getElementById('stat-yellow'),
-    statGreen: document.getElementById('stat-green'),
-    exportBtn: document.getElementById('export-error-btn')
+// DOM Elements - Safely initialized
+const getEls = () => {
+    if (typeof document === 'undefined') return {};
+    return {
+        loginSection: document.getElementById('login-section'),
+        dashboardSection: document.getElementById('dashboard-section'),
+        userDisplay: document.getElementById('user-display'),
+        loginError: document.getElementById('login-error'),
+        loadingOverlay: document.getElementById('loading-overlay'),
+        dropzoneText: document.getElementById('dropzone-text'),
+        dropzone: document.getElementById('dropzone'),
+        tableBody: document.getElementById('tracking-table-body'),
+        noDataMsg: document.getElementById('no-data'),
+        statTotal: document.getElementById('stat-total'),
+        statRed: document.getElementById('stat-red'),
+        statYellow: document.getElementById('stat-yellow'),
+        statGreen: document.getElementById('stat-green'),
+        exportBtn: document.getElementById('export-error-btn')
+    };
 };
+
+const els = getEls();
 
 export const ui = {
     initTheme() {
+        if (typeof document === 'undefined' || typeof localStorage === 'undefined') return;
+        
         const currentTheme = localStorage.getItem('theme') || 'light';
         const isDark = currentTheme === 'dark';
         if (isDark) document.documentElement.classList.add('dark');
@@ -31,6 +38,8 @@ export const ui = {
     },
 
     toggleTheme() {
+        if (typeof document === 'undefined' || typeof localStorage === 'undefined') return;
+
         const isDark = document.documentElement.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
         const themeIcon = document.getElementById('theme-icon');
@@ -40,28 +49,64 @@ export const ui = {
     },
 
     showLogin(message = '') {
+        if (!els.loginSection) return;
         els.loginSection.classList.remove('hidden');
         els.dashboardSection.classList.add('hidden');
         if (message) this.showLoginError(message);
     },
 
     showDashboard(userName) {
+        if (!els.loginSection) return;
         els.loginSection.classList.add('hidden');
         els.dashboardSection.classList.remove('hidden');
         els.userDisplay.textContent = `สวัสดี, ${userName}`;
+        this.startClock();
+    },
+
+    startClock() {
+        if (typeof document === 'undefined') return;
+        
+        const timeEl = document.getElementById('clock-time');
+        const dateEl = document.getElementById('clock-date');
+        if (!timeEl || !dateEl) return;
+        
+        const update = () => {
+            const now = new Date();
+            
+            // Time: HH:mm:ss
+            timeEl.textContent = now.toLocaleTimeString('th-TH', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            
+            // Date: DD MMM YYYY (Thai)
+            dateEl.textContent = now.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            }).toUpperCase();
+        };
+        
+        update();
+        setInterval(update, 1000);
     },
 
     showLoginError(msg) {
+        if (!els.loginError) return;
         els.loginError.textContent = msg;
         els.loginError.classList.remove('hidden');
     },
 
     setLoading(isLoading) {
+        if (!els.loadingOverlay) return;
         if (isLoading) els.loadingOverlay.classList.remove('hidden');
         else els.loadingOverlay.classList.add('hidden');
     },
 
     updateDropzoneUI(file) {
+        if (!els.dropzone) return;
         if (file) {
             els.dropzoneText.textContent = `ไฟล์ที่เลือก: ${file.name}`;
             els.dropzoneText.className = "text-xs font-bold text-emerald-600 dark:text-emerald-400";
@@ -74,6 +119,8 @@ export const ui = {
     },
 
     renderTable(data, sortBy = '', sortDesc = false) {
+        if (typeof document === 'undefined' || !els.tableBody) return;
+        
         // Update table headers to show sorting indicators
         const headers = document.querySelectorAll('#tracking-table-thead th[data-sort]');
         headers.forEach(th => {

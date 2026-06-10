@@ -4,18 +4,36 @@ import { ui } from './ui.js';
 import { exportToCsv } from './utils.js';
 
 // App State
-let appState = {
-    token: localStorage.getItem('nhso_token'),
-    user: JSON.parse(localStorage.getItem('nhso_user')),
-    rawTableData: [],
-    savedQueries: [],
-    currentQueryResults: [],
-    querySortBy: '',
-    querySortDesc: false,
-    trackerSortBy: '',
-    trackerSortDesc: false,
-    trackerSearchFilter: ''
+const getInitialState = () => {
+    if (typeof localStorage === 'undefined') {
+        return {
+            token: null,
+            user: null,
+            rawTableData: [],
+            savedQueries: [],
+            currentQueryResults: [],
+            querySortBy: '',
+            querySortDesc: false,
+            trackerSortBy: '',
+            trackerSortDesc: false,
+            trackerSearchFilter: ''
+        };
+    }
+    return {
+        token: localStorage.getItem('nhso_token'),
+        user: JSON.parse(localStorage.getItem('nhso_user')),
+        rawTableData: [],
+        savedQueries: [],
+        currentQueryResults: [],
+        querySortBy: '',
+        querySortDesc: false,
+        trackerSortBy: '',
+        trackerSortDesc: false,
+        trackerSearchFilter: ''
+    };
 };
+
+let appState = getInitialState();
 
 // Form Elements
 let visitDateInput;
@@ -23,6 +41,8 @@ let excelFileInput;
 
 // Initialize Application
 function init() {
+    if (typeof document === 'undefined') return;
+    
     ui.initTheme();
 
     // Fetch elements safely
@@ -137,13 +157,17 @@ async function handleLogin(e) {
 }
 
 function handleLogout() {
-    localStorage.removeItem('nhso_token');
-    localStorage.removeItem('nhso_user');
-    localStorage.removeItem('username');
-    localStorage.removeItem('fullname');
-    localStorage.removeItem('department');
-    localStorage.removeItem('role');
-    location.reload();
+    if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('nhso_token');
+        localStorage.removeItem('nhso_user');
+        localStorage.removeItem('username');
+        localStorage.removeItem('fullname');
+        localStorage.removeItem('department');
+        localStorage.removeItem('role');
+    }
+    if (typeof location !== 'undefined') {
+        location.reload();
+    }
 }
 
 // --- Auto-Date Detection (เมื่อเลือกไฟล์) ---
@@ -342,6 +366,8 @@ async function loadWeeklySummary() {
                 loadDashboardData();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
+        } else if (data.message === 'Forbidden' || data.message === 'Session Expired' || data.message === 'Unauthorized') {
+            handleLogout();
         }
     } catch (error) {
         console.error('Failed to load weekly summary:', error);
@@ -359,6 +385,9 @@ async function loadDashboardData() {
             appState.rawTableData = data;
             renderTrackerTable();
             ui.updateStats(data);
+        } else if (data.message === 'Forbidden' || data.message === 'Session Expired' || data.message === 'Unauthorized') {
+            console.warn('Authentication failed, logging out...');
+            handleLogout();
         }
     } catch (error) {
         console.error('Fetch error:', error);
@@ -475,6 +504,8 @@ async function loadSavedQueries(selectedId = '') {
         if (ok) {
             appState.savedQueries = data;
             ui.renderSavedQueriesDropdown(data, selectedId);
+        } else if (data.message === 'Forbidden' || data.message === 'Session Expired' || data.message === 'Unauthorized') {
+            handleLogout();
         }
     } catch (e) {
         console.error('Error loading saved queries:', e);

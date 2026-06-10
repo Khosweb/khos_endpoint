@@ -4,6 +4,11 @@
  * แปลงข้อมูล Array ของ Object เป็น CSV และดาวน์โหลด
  */
 export function exportToCsv(filename, rows) {
+    if (typeof document === 'undefined' || typeof Blob === 'undefined') {
+        console.warn('exportToCsv is only supported in browser environment');
+        return;
+    }
+    
     if (!rows || !rows.length) return;
 
     const separator = ',';
@@ -26,7 +31,7 @@ export function exportToCsv(filename, rows) {
 
     const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
     
-    if (navigator.msSaveBlob) { // IE 10+
+    if (typeof navigator !== 'undefined' && navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, filename);
     } else {
         const link = document.createElement("a");

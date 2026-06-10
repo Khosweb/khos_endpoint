@@ -117,7 +117,12 @@ export function authenticateToken(req, res, next) {
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             console.error(`❌ JWT Verification Failed: ${err.message}`);
-            return res.status(403).json({ message: 'Forbidden', error: err.message });
+            const message = err.name === 'TokenExpiredError' ? 'Session Expired' : 'Forbidden';
+            return res.status(403).json({ 
+                success: false,
+                message: message, 
+                error: err.message 
+            });
         }
         req.user = user;
         next();
