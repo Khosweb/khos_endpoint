@@ -64,6 +64,7 @@ function init() {
 function setupEventListeners() {
     // Theme & UX
     document.getElementById('theme-toggle')?.addEventListener('click', ui.toggleTheme);
+    document.getElementById('toggle-list-btn')?.addEventListener('click', ui.togglePatientList);
     setupBackToTop();
 
     // Authentication
@@ -382,9 +383,10 @@ async function loadDashboardData() {
     try {
         const { ok, data } = await api.fetchDashboard(date, appState.token);
         if (ok) {
-            appState.rawTableData = data;
+            // data now contains { trackingData: [], hosxpStats: { totalPersons: X, totalVisits: Y } }
+            appState.rawTableData = data.trackingData || [];
             renderTrackerTable();
-            ui.updateStats(data);
+            ui.updateStats(appState.rawTableData, data.hosxpStats);
         } else if (data.message === 'Forbidden' || data.message === 'Session Expired' || data.message === 'Unauthorized') {
             console.warn('Authentication failed, logging out...');
             handleLogout();

@@ -8,7 +8,7 @@ import * as xlsx from 'xlsx';
 import { checkConnections, trackerPool, hosxpPool } from './db.js';
 import { initInternalDb } from './initDb.js';
 import { verifyUserLogin, authenticateToken } from './auth.js';
-import { getHosxpVisits, saveTrackingResults, saveAuthenLog, executeAdvancedRunLogic, checkNhsoStatusViaApi } from './dataService.js';
+import { getHosxpVisits, saveTrackingResults, saveAuthenLog, executeAdvancedRunLogic, checkNhsoStatusViaApi, getHosxpTotalVisits } from './dataService.js';
 import { processCrossCheck } from './crossCheckLogic.js';
 
 dotenv.config();
@@ -279,8 +279,18 @@ app.get('/api/tracking/dashboard', authenticateToken, async (req, res) => {
         query += ' ORDER BY color_status ASC, full_name ASC';
 
         const [rows] = await trackerPool.query(query, params);
-        res.json(rows);
+        
+        let hosxpStats = null;
+        if (date) {
+            hosxpStats = await getHosxpTotalVisits(date);
+        }
+
+        res.json({
+            trackingData: rows,
+            hosxpStats: hosxpStats
+        });
     } catch (error) {
+        console.error('Dashboard Fetch Error:', error);
         res.status(500).json({ message: 'ไม่สามารถดึงข้อมูล Dashboard ได้' });
     }
 });

@@ -37,6 +37,28 @@ export async function getHosxpVisits(visitDate) {
 }
 
 /**
+ * ดึงจำนวนผู้มาใช้บริการทั้งหมด (คน/Visit) จากตาราง VN_STAT ใน HOSxP
+ */
+export async function getHosxpTotalVisits(visitDate) {
+    const query = `
+        SELECT 
+            COUNT(DISTINCT hn) as totalPersons,
+            COUNT(vn) as totalVisits,
+            SUM(uc_money) as totalUcMoney
+        FROM vn_stat 
+        WHERE vstdate = ?
+    `;
+
+    try {
+        const [rows] = await hosxpPool.query(query, [visitDate]);
+        return rows[0] || { totalPersons: 0, totalVisits: 0, totalUcMoney: 0 };
+    } catch (error) {
+        console.error('❌ HOSxP Total Visits Query Error:', error);
+        return { totalPersons: 0, totalVisits: 0, totalUcMoney: 0 };
+    }
+}
+
+/**
  * บันทึกหรืออัปเดตข้อมูลผลการ Cross-check ลงใน Internal DB
  */
 export async function saveTrackingResults(results) {

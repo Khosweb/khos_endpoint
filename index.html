@@ -172,7 +172,7 @@
                 </div>
 
                 <!-- Stats Summary -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                     <!-- Card 1: Total Users -->
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-blue-500 flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
                         <div class="space-y-1">
@@ -206,7 +206,29 @@
                         </div>
                     </div>
                     
-                    <!-- Card 4: Complete -->
+                    <!-- Card 4: Count UC Pending -->
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-cyan-500 flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">สิทธิ UC ที่ยังไม่ปิดงาน</p>
+                            <h3 id="stat-uc-count" class="text-2xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">0</h3>
+                        </div>
+                        <div class="bg-cyan-50 dark:bg-cyan-950/40 w-12 h-12 rounded-xl flex items-center justify-center text-cyan-500 dark:text-cyan-400">
+                            <i class="fas fa-id-card text-xl"></i>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: Debtor UC Money -->
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-indigo-500 flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ค่ารักษาลูกหนี้ UC (บาท)</p>
+                            <h3 id="stat-uc-money" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">0.00</h3>
+                        </div>
+                        <div class="bg-indigo-50 dark:bg-indigo-950/40 w-12 h-12 rounded-xl flex items-center justify-center text-indigo-500 dark:text-indigo-400">
+                            <i class="fas fa-hand-holding-usd text-xl"></i>
+                        </div>
+                    </div>
+
+                    <!-- Card 6: Complete -->
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 shadow-sm flex justify-between items-center transition duration-300 transform hover:-translate-y-0.5 hover:shadow-md">
                         <div class="space-y-1">
                             <p class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">สมบูรณ์แล้ว</p>
@@ -231,9 +253,14 @@
                 <!-- Table Card -->
                 <div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
                     <div class="p-5 border-b border-slate-200/60 dark:border-slate-800/80 flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-slate-50/50 dark:bg-slate-900/40">
-                        <div>
-                            <h2 class="font-bold text-base">รายการผู้ป่วยสิทธิ สปสช.</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">แสดงรายละเอียดข้อมูลและสถานะการเคลมสิทธิ์</p>
+                        <div class="flex items-center gap-3">
+                            <div>
+                                <h2 class="font-bold text-base">รายการผู้ป่วยสิทธิ สปสช.</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">แสดงรายละเอียดข้อมูลและสถานะการเคลมสิทธิ์</p>
+                            </div>
+                            <button id="toggle-list-btn" class="p-2 rounded-xl bg-slate-100/50 dark:bg-slate-800/50 text-slate-400 hover:text-blue-500 transition-all focus:outline-none" title="ยืด/หด แผงข้อมูล">
+                                <i id="toggle-list-icon" class="fas fa-chevron-up text-xs transition-transform duration-300"></i>
+                            </button>
                         </div>
                         <div class="flex flex-wrap items-center gap-2.5">
                             <div class="relative w-full sm:w-60">
@@ -250,38 +277,40 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <!-- Data Table View -->
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left border-collapse min-w-[1300px]">
-                            <thead id="tracking-table-thead">
-                                <tr class="bg-slate-100/60 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-slate-800/80 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
-                                    <th class="py-3 px-4 w-36 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="vn">VN</th>
-                                    <th class="py-3 px-4 w-44 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="cid">เลขบัตรประชาชน</th>
-                                    <th class="py-3 px-4 w-44 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="nhso_authen_code">Authen Code</th>
-                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="pcode">PCode</th>
-                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="uc_money">UC Money</th>
-                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="claim_code">Claim Code</th>
-                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="authen_code_type">Authen Code Type</th>
-                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="pttype_note">PTType Note</th>
-                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="department">Department</th>
-                                    <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="staff">เจ้าหน้าที่</th>
-                                    <th class="py-3 px-4 w-32 text-center cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="check_claimcode">ผลการเช็ค</th>
-                                    <th class="py-3 px-4 w-44 text-center cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="color_status">สถานะ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tracking-table-body" class="text-sm divide-y divide-slate-100 dark:divide-slate-800/80 bg-transparent">
-                                <!-- Data will be loaded here -->
-                            </tbody>
-                        </table>
+
+                    <div id="patient-list-content" class="transition-all duration-300 ease-in-out">
+                        <!-- Data Table View -->
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left border-collapse min-w-[1300px]">
+                                <thead id="tracking-table-thead">
+                                    <tr class="bg-slate-100/60 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-slate-800/80 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+                                        <th class="py-3 px-4 w-36 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="vn">VN</th>
+                                        <th class="py-3 px-4 w-44 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="cid">เลขบัตรประชาชน</th>
+                                        <th class="py-3 px-4 w-44 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="nhso_authen_code">Authen Code</th>
+                                        <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="pcode">PCode</th>
+                                        <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="uc_money">UC Money</th>
+                                        <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="claim_code">Claim Code</th>
+                                        <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="authen_code_type">Authen Code Type</th>
+                                        <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="pttype_note">PTType Note</th>
+                                        <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="department">Department</th>
+                                        <th class="py-3 px-4 text-xs cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="staff">เจ้าหน้าที่</th>
+                                        <th class="py-3 px-4 w-32 text-center cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="check_claimcode">ผลการเช็ค</th>
+                                        <th class="py-3 px-4 w-44 text-center cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition duration-150 select-none" data-sort="color_status">สถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tracking-table-body" class="text-sm divide-y divide-slate-100 dark:divide-slate-800/80 bg-transparent">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="no-data" class="p-16 text-center text-slate-500 dark:text-slate-400 hidden bg-transparent">
+                            <i class="fas fa-folder-open text-5xl text-slate-400 dark:text-slate-600 mb-3 animate-pulse-slow"></i>
+                            <p class="font-bold text-base">ไม่พบข้อมูลในระบบ</p>
+                            <p class="text-xs mt-1">กรุณาเลือกวันที่หรือนำเข้าข้อมูลที่ตรวจสอบ</p>
+                        </div>
                     </div>
-                    
-                    <div id="no-data" class="p-16 text-center text-slate-500 dark:text-slate-400 hidden bg-transparent">
-                        <i class="fas fa-folder-open text-5xl text-slate-400 dark:text-slate-600 mb-3 animate-pulse-slow"></i>
-                        <p class="font-bold text-base">ไม่พบข้อมูลในระบบ</p>
-                        <p class="text-xs mt-1">กรุณาเลือกวันที่หรือนำเข้าข้อมูลที่ต้องการตรวจสอบ</p>
                     </div>
-                </div>
             </div>
 
             <!-- Grafana Custom SQL View Container -->

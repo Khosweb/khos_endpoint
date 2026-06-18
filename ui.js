@@ -17,6 +17,8 @@ const getEls = () => {
         statRed: document.getElementById('stat-red'),
         statYellow: document.getElementById('stat-yellow'),
         statGreen: document.getElementById('stat-green'),
+        statUcCount: document.getElementById('stat-uc-count'),
+        statUcMoney: document.getElementById('stat-uc-money'),
         exportBtn: document.getElementById('export-error-btn')
     };
 };
@@ -43,6 +45,19 @@ export const ui = {
         const themeIcon = document.getElementById('theme-icon');
         if (themeIcon) {
             themeIcon.className = isDark ? 'fas fa-sun text-sm' : 'fas fa-moon text-sm';
+        }
+    },
+
+    togglePatientList() {
+        const content = document.getElementById('patient-list-content');
+        const icon = document.getElementById('toggle-list-icon');
+        if (!content || !icon) return;
+        
+        const isCollapsed = content.classList.toggle('hidden');
+        if (isCollapsed) {
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            icon.style.transform = 'rotate(0deg)';
         }
     },
 
@@ -159,13 +174,18 @@ export const ui = {
 
         data.forEach(item => {
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-slate-50/70 dark:hover:bg-slate-800/45 border-b border-slate-100 dark:border-slate-800/80 transition duration-150';
+            const isGreen = item.color_status === 'GREEN';
+            const rowClass = isGreen ? 'bg-emerald-50/20 dark:bg-emerald-900/10' : '';
+            tr.className = `hover:bg-slate-50/70 dark:hover:bg-slate-800/45 border-b border-slate-100 dark:border-slate-800/80 transition duration-150 ${rowClass}`;
             
             const statusClass = item.color_status === 'RED' ? 'status-red' : 
                               item.color_status === 'YELLOW' ? 'status-yellow' : 'status-green';
             
             const statusText = item.color_status === 'RED' ? 'ยังไม่เปิด Authen' : 
                               item.color_status === 'YELLOW' ? 'รอปิด Endpoint' : 'สมบูรณ์';
+            
+            const statusIcon = item.color_status === 'RED' ? '<i class="fas fa-times-circle mr-1"></i>' : 
+                              item.color_status === 'YELLOW' ? '<i class="fas fa-clock mr-1"></i>' : '<i class="fas fa-check-circle mr-1"></i>';
 
             const checkClaimClass = item.check_claimcode === 'ตรง' ? 'status-green' : 
                                   item.check_claimcode === 'ตรวจสอบ' ? 'status-yellow' : 
@@ -196,6 +216,7 @@ export const ui = {
                 </td>
                 <td class="py-3.5 px-4 text-center">
                     <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold shadow-sm leading-none ${statusClass}">
+                        ${statusIcon}
                         ${statusText}
                     </span>
                 </td>
@@ -204,17 +225,34 @@ export const ui = {
         });
     },
 
-    updateStats(data) {
+    updateStats(data, hosxpStats = null) {
         if (!data) return;
         const els = getEls();
-        if (!els.statTotal || !els.statRed || !els.statYellow || !els.statGreen) return;
-        const uniquePersons = new Set(data.map(i => i.cid)).size;
-        const totalVisits = data.length;
+        if (!els.statTotal || !els.statRed || !els.statYellow || !els.statGreen || !els.statUcMoney || !els.statUcCount) return;
+        
+        // Calculate NHSO specific stats from data array
         const red = data.filter(i => i.color_status === 'RED').length;
         const yellow = data.filter(i => i.color_status === 'YELLOW').length;
         const green = data.filter(i => i.color_status === 'GREEN').length;
 
-        els.statTotal.innerHTML = `${uniquePersons} <span class="text-lg text-gray-400">/ ${totalVisits}</span>`;
+        // Calculate UC Pending Count (RED + YELLOW and Pcode = 'UC')
+        const ucPendingItems = data.filter(i => (i.color_status === 'RED' || i.color_status === 'YELLOW') && String(i.pcode).toUpperCase() === 'UC');
+        const ucPendingCount = ucPendingItems.length;
+
+        // Calculate Outstanding UC Money
+        const outstandingUcMoney = ucPendingItems.reduce((sum, item) => sum + (Number(item.uc_money) || 0), 0);
+
+        // Use HOSxP Stats for total persons/visits
+        if (hosxpStats) {
+            els.statTotal.innerHTML = `${hosxpStats.totalPersons} <span class="text-lg text-gray-400">/ ${hosxpStats.totalVisits}</span>`;
+        } else {
+            const uniquePersons = new Set(data.map(i => i.cid)).size;
+            const totalVisits = data.length;
+            els.statTotal.innerHTML = `${uniquePersons} <span class="text-lg text-gray-400">/ ${totalVisits}</span>`;
+        }
+
+        els.statUcCount.textContent = ucPendingCount;
+        els.statUcMoney.textContent = outstandingUcMoney.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         els.statRed.textContent = red;
         els.statYellow.textContent = yellow;
         els.statGreen.textContent = green;
