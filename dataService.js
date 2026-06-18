@@ -29,7 +29,7 @@ export async function getHosxpVisits(visitDate) {
                )
             ) AS check_claimcode,
             v.uc_money,
-            CAST(CONVERT(k.department USING utf8) AS BINARY) AS department,
+            CONVERT(k.department USING utf8) AS department,
             COUNT(DISTINCT v.cid) AS cc_cid
         FROM vn_stat v
         LEFT JOIN patient p ON p.hn = v.hn
