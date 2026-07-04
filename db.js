@@ -5,11 +5,11 @@ dotenv.config();
 
 // Pool for HOSxP (Read-Only)
 export const hosxpPool = mysql.createPool({
-    host: process.env.HOSXP_HOST,
-    user: process.env.HOSXP_USER,
-    password: process.env.HOSXP_PASS,
-    database: process.env.HOSXP_DB,
-    port: process.env.HOSXP_PORT || 3306,
+    host: process.env.HOSXP_HOST || process.env.DB_HOST,
+    user: process.env.HOSXP_USER || process.env.DB_USER,
+    password: process.env.HOSXP_PASS || process.env.DB_PASSWORD,
+    database: process.env.HOSXP_DB || process.env.DB_NAME,
+    port: process.env.HOSXP_PORT || process.env.DB_PORT || 3306,
     charset: 'tis620',
     waitForConnections: true,
     connectionLimit: 10,
@@ -24,11 +24,11 @@ export const hosxpPool = mysql.createPool({
 
 // Pool for Internal Tracking DB
 export const trackerPool = mysql.createPool({
-    host: process.env.TRACKER_HOST,
-    user: process.env.TRACKER_USER,
-    password: process.env.TRACKER_PASS,
-    database: process.env.TRACKER_DB,
-    port: process.env.TRACKER_PORT || 3306,
+    host: process.env.TRACKER_HOST || process.env.DB_HOST,
+    user: process.env.TRACKER_USER || process.env.DB_USER,
+    password: process.env.TRACKER_PASS || process.env.DB_PASSWORD,
+    database: process.env.TRACKER_DB || process.env.DB_NAME,
+    port: process.env.TRACKER_PORT || process.env.DB_PORT || 3306,
     charset: process.env.TRACKER_CHARSET || 'utf8mb4',
     waitForConnections: true,
     connectionLimit: 10,
@@ -39,6 +39,12 @@ export const trackerPool = mysql.createPool({
     connectTimeout: 20000,
     maxIdle: 10,
     idleTimeout: 60000
+});
+
+// Force UTF-8 encoding on every new connection for the tracking database
+// This prevents the HOSxP server's default tis620 from corrupting our tracking data
+trackerPool.on('connection', (connection) => {
+    connection.query('SET NAMES utf8mb4');
 });
 
 // Helper to check connections

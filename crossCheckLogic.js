@@ -56,22 +56,18 @@ export function processCrossCheck(hosxpData, excelData) {
             }
         }
 
-        // วิเคราะห์สถานะจับคู่เคลมโค้ด (เลียนแบบ Logic ใน Grafana)
-        if (cid && cidCounts[cid] > 1) {
-            checkClaimcode = 'ตรวจสอบ';
-        } else if (authenCode) {
-            // เปรียบเทียบรหัส claim_code ใน HOSxP (patient.claim_code) กับใน Excel/NHSO (authenCode)
-            const hosxpClaim = String(patient.claim_code || '').trim();
-            const nhsoClaim = String(authenCode || '').trim();
-            if (hosxpClaim && nhsoClaim && hosxpClaim === nhsoClaim) {
-                checkClaimcode = 'ตรง';
-            } else {
-                checkClaimcode = 'ไม่ตรง';
-            }
+        // ใช้ผลการเช็คที่คำนวณมาจากฝั่งฐานข้อมูล (dataService.js)
+        checkClaimcode = patient.check_claimcode;
+
+        // ถ้ารหัส CLAIM (NHSO) ขึ้นต้นด้วย E ให้แสดงสถานะ "ปิด Endpointแล้ว" (สีเขียว)
+        const currentNhsoClaim = String(patient.nhso_claim_code || '').trim().toUpperCase();
+        if (currentNhsoClaim.startsWith('E')) {
+            color = 'GREEN';
         }
 
         return {
             vn: patient.vn,
+            an: patient.an,
             hn: patient.hn,
             cid: patient.cid,
             full_name: patient.fullName,
@@ -81,10 +77,11 @@ export function processCrossCheck(hosxpData, excelData) {
             uc_money: patient.uc_money,
             department: patient.department,
             staff: patient.staff || null,
-            // หากพบใน Excel ให้นำค่าใหม่มาแสดง มิฉะนั้นใช้ค่าเดิมจาก HOSxP
-            claim_code: authenCode || patient.claim_code,
-            authen_code_type: authenCodeType || patient.pttype_note,
-            pttype_note: authenCodeType || patient.pttype_note, 
+            authcode: patient.authcode,
+            claim_code: patient.claim_code,
+            nhso_claim_code: patient.nhso_claim_code,
+            authen_code_type: authenCodeType || patient.authen_code_type,
+            pttype_note: patient.pttype_note, 
             nhso_authen_code: authenCode,
             authen_status: authenStatus,
             endpoint_status: endpointStatus,

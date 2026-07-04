@@ -13,6 +13,16 @@ import { processCrossCheck } from './crossCheckLogic.js';
 
 dotenv.config();
 
+// Global error handlers to prevent process exit
+process.on('unhandledRejection', (reason, promise) => {
+    console.warn('⚠️ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    // Don't exit - just log and continue
+});
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -36,17 +46,35 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'dist')));
 }
 
-// Check DB Connections and Init Table
-checkConnections().then(() => {
-    initInternalDb();
-});
+// Check DB Connections and Init Table (delayed background task)
+// Runs 1 second after server starts, won't block startup
+setTimeout(() => {
+    (async () => {
+        try {
+            console.log('📊 Running database initialization...');
+            await checkConnections();
+            await initInternalDb();
+            console.log('✅ Database initialization complete');
+        } catch (err) {
+            console.warn('⚠️ Database initialization issue (non-critical):', err.message);
+            // Continue running - frontend still works without database
+        }
+    })();
+}, 1000); // Delay 1 second to ensure server is listening first
+
+console.log('✅ Server initialization complete - database operations queued');
 
 // --- Auth Routes ---
 app.post('/api/auth/login', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ message: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' });
-    const result = await verifyUserLogin(username, password);
-    result.success ? res.json(result) : res.status(401).json({ message: result.message });
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) return res.status(400).json({ message: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' });
+        const result = await verifyUserLogin(username, password);
+        result.success ? res.json(result) : res.status(401).json({ message: result.message });
+    } catch (error) {
+        console.error('❌ Login Error:', error.message);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ' + error.message });
+    }
 });
 
 // --- NHSO Tracking Routes ---

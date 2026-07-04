@@ -11,8 +11,10 @@ export async function initInternalDb() {
             visit_date DATE NOT NULL,
             pttype VARCHAR(10),
             pcode VARCHAR(10),
-            uc_money DOUBLE(15,3),
+            uc_money DECIMAL(10, 2),
+            authcode VARCHAR(50),
             claim_code VARCHAR(50),
+            nhso_claim_code VARCHAR(50),
             authen_code_type VARCHAR(100),
             pttype_note TEXT,
             department VARCHAR(150),
@@ -26,7 +28,7 @@ export async function initInternalDb() {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_cid_date (cid, visit_date),
             INDEX idx_color (color_status)
-        );
+        ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `;
 
     const savedQueriesSchema = `
@@ -129,7 +131,7 @@ ORDER BY ผู้รับบริการทั้งหมด DESC;`
                     db_type: 'tracker',
                     query_text: `SELECT 
     vn, hn, cid, full_name, visit_date, pttype, 
-    claim_code, authen_code_type, department, color_status, updated_at
+    authcode, claim_code, nhso_claim_code, authen_code_type, department, color_status, updated_at
 FROM visit_tracking 
 WHERE visit_date = CURDATE()
 ORDER BY color_status ASC;`
@@ -146,6 +148,9 @@ ORDER BY color_status ASC;`
         }
 
     } catch (error) {
-        console.error('❌ Failed to initialize internal database:', error);
+        console.error('❌ Failed to initialize internal database:', error.message);
+        // Don't throw - just log and continue
+        // Frontend will still work even without database
+        return Promise.resolve(); // Ensure this returns a resolved promise
     }
 }

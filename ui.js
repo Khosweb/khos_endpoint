@@ -136,7 +136,7 @@ export const ui = {
         }
     },
 
-    renderTable(data, sortBy = '', sortDesc = false) {
+    renderTable(data, sortBy = '', sortDesc = false, currentPage = 1, pageSize = 10) {
         if (typeof document === 'undefined') return;
         const els = getEls();
         if (!els.tableBody) return;
@@ -160,6 +160,8 @@ export const ui = {
         if (!data || data.length === 0) {
             if (els.noDataMsg) els.noDataMsg.classList.remove('hidden');
             if (els.exportBtn) els.exportBtn.classList.add('hidden'); // ซ่อนปุ่ม Export หากไม่มีข้อมูล
+            const paginationContainer = document.getElementById('pagination-container');
+            if (paginationContainer) paginationContainer.classList.add('hidden');
             return;
         }
         
@@ -172,8 +174,12 @@ export const ui = {
             else els.exportBtn.classList.add('hidden');
         }
 
-        // แสดงผลเพียง 10 รายการแรก
-        const displayData = data.slice(0, 10);
+        // Calculate pagination
+        const totalRecords = data.length;
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, totalRecords);
+        const displayData = data.slice(startIndex, endIndex);
 
         displayData.forEach(item => {
             const tr = document.createElement('tr');
@@ -185,7 +191,7 @@ export const ui = {
                               item.color_status === 'YELLOW' ? 'status-yellow' : 'status-green';
             
             const statusText = item.color_status === 'RED' ? 'ยังไม่เปิด Authen' : 
-                              item.color_status === 'YELLOW' ? 'รอปิด Endpoint' : 'สมบูรณ์';
+                              item.color_status === 'YELLOW' ? 'รอปิด Endpoint' : 'ปิด Endpointแล้ว';
             
             const statusIcon = item.color_status === 'RED' ? '<i class="fas fa-times-circle mr-1"></i>' : 
                               item.color_status === 'YELLOW' ? '<i class="fas fa-clock mr-1"></i>' : '<i class="fas fa-check-circle mr-1"></i>';
@@ -199,26 +205,22 @@ export const ui = {
 
             tr.innerHTML = `
                 <td class="py-3.5 px-4 font-mono text-xs font-semibold">
-                    <span class="text-blue-600 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100/50 dark:border-blue-900/30 rounded-lg px-2.5 py-1 inline-block">${item.vn}</span>
+                    <span class="text-blue-600 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100/50 dark:border-blue-900/30 rounded-lg px-2.5 py-1 inline-block">${item.an ? item.an : item.vn}</span>
                 </td>
-                <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 font-mono">${item.cid_check || '-'}</td>
                 <td class="py-3.5 px-4 text-slate-700 dark:text-slate-200 font-medium tracking-wide">${item.cid}</td>
+                <td class="py-3.5 px-4 text-xs font-semibold text-slate-700 dark:text-slate-200">${item.full_name || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${item.pttype || '-'}</td>
-                <td class="py-3.5 px-4 text-xs font-medium text-slate-500 dark:text-slate-400">${item.pcode || '-'}</td>
                 <td class="py-3.5 px-4 font-mono text-xs text-slate-600">
-                    ${item.authCode ? `<span class="bg-slate-100 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 px-2 py-0.5 rounded font-medium dark:text-slate-300">${item.authCode}</span>` : '-'}
+                    ${item.authcode ? `<span class="bg-slate-100 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 px-2 py-0.5 rounded font-medium dark:text-slate-300">${item.authcode}</span>` : '-'}
                 </td>
                 <td class="py-3.5 px-4 text-xs text-emerald-600 dark:text-emerald-400 font-bold">${item.claim_code || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-blue-600 dark:text-blue-400 font-bold">${item.nhso_claim_code || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-indigo-500 dark:text-indigo-400 font-semibold">${item.authen_code_type || '-'}</td>
-                <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 truncate max-w-[180px]" title="${item.pttype_note || ''}">${item.pttype_note || '-'}</td>
-                <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 font-medium">${item.staff || '-'}</td>
                 <td class="py-3.5 px-4 text-center">
                     <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-sm leading-none ${checkClaimClass}">
                         ${checkClaimVal}
                     </span>
                 </td>
-                <td class="py-3.5 px-4 text-xs font-semibold text-slate-700 dark:text-slate-200 text-right">${(item.uc_money != null && !isNaN(item.uc_money)) ? Number(item.uc_money).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 font-medium">${item.department || '-'}</td>
                 <td class="py-3.5 px-4 text-center">
                     <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold shadow-sm leading-none ${statusClass}">
@@ -229,6 +231,112 @@ export const ui = {
             `;
             els.tableBody.appendChild(tr);
         });
+
+        // Update pagination UI
+        this.updatePaginationUI(totalRecords, currentPage, pageSize, totalPages);
+    },
+
+    updatePaginationUI(totalRecords, currentPage, pageSize, totalPages) {
+        if (typeof document === 'undefined') return;
+        
+        const paginationContainer = document.getElementById('pagination-container');
+        const infoEl = document.getElementById('pagination-info');
+        const totalEl = document.getElementById('pagination-total');
+        const prevBtn = document.getElementById('pagination-prev-btn');
+        const nextBtn = document.getElementById('pagination-next-btn');
+        const buttonsContainer = document.getElementById('pagination-buttons');
+        
+        if (!paginationContainer) return;
+
+        // Show/hide pagination container
+        if (totalRecords <= pageSize) {
+            paginationContainer.classList.add('hidden');
+            return;
+        }
+        paginationContainer.classList.remove('hidden');
+
+        // Update info text
+        const startRecord = (currentPage - 1) * pageSize + 1;
+        const endRecord = Math.min(currentPage * pageSize, totalRecords);
+        if (infoEl) infoEl.textContent = `${startRecord}-${endRecord}`;
+        if (totalEl) totalEl.textContent = totalRecords;
+
+        // Update prev/next buttons
+        if (prevBtn) {
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => this.goToPage(currentPage - 1);
+        }
+        if (nextBtn) {
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => this.goToPage(currentPage + 1);
+        }
+
+        // Generate page buttons
+        if (buttonsContainer) {
+            buttonsContainer.innerHTML = '';
+            
+            // Determine range of pages to show (max 5 buttons)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (currentPage <= 3) {
+                endPage = Math.min(totalPages, 5);
+            } else if (currentPage > totalPages - 3) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            // Add first page button if needed
+            if (startPage > 1) {
+                const btn = this.createPageButton(1, currentPage === 1);
+                btn.onclick = () => this.goToPage(1);
+                buttonsContainer.appendChild(btn);
+                
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.className = 'px-2 text-slate-400 dark:text-slate-500';
+                    dots.textContent = '...';
+                    buttonsContainer.appendChild(dots);
+                }
+            }
+
+            // Add numbered page buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = this.createPageButton(i, currentPage === i);
+                btn.onclick = () => this.goToPage(i);
+                buttonsContainer.appendChild(btn);
+            }
+
+            // Add last page button if needed
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.className = 'px-2 text-slate-400 dark:text-slate-500';
+                    dots.textContent = '...';
+                    buttonsContainer.appendChild(dots);
+                }
+                const btn = this.createPageButton(totalPages, currentPage === totalPages);
+                btn.onclick = () => this.goToPage(totalPages);
+                buttonsContainer.appendChild(btn);
+            }
+        }
+    },
+
+    createPageButton(pageNum, isActive) {
+        const btn = document.createElement('button');
+        btn.textContent = pageNum;
+        btn.className = `px-2.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            isActive 
+                ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md' 
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+        }`;
+        return btn;
+    },
+
+    goToPage(pageNum) {
+        // This will be called from app.js to update state and re-render
+        if (typeof window !== 'undefined' && window.handlePaginationChange) {
+            window.handlePaginationChange(pageNum);
+        }
     },
 
     updateStats(data, hosxpStats = null) {

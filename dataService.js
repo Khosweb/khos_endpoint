@@ -7,28 +7,21 @@ import { hosxpPool, trackerPool } from './db.js';
 export async function getHosxpVisits(visitDate) {
     const query = `
         SELECT 
-            IF(ov.an IS NULL, v.vn, 'Admit') AS vn,
+            v.vn,
+            ov.an,
             CONCAT('cid_', v.cid) AS cid_check,
             v.cid,
             CONCAT(p.pname, p.fname, ' ', p.lname) as fullName,
             v.vstdate as visitDate,
             vp.pttype,
             py.hipdata_code as pcode,
-            vp.Auth_Code as authCode,
+            vp.auth_code as authcode,
             vp.claim_code,
             td.claimcode as nhso_claim_code,
             td.authen_code_type,
             vp.pttype_note,
             vp.staff,
-            IF((SELECT COUNT(cid) 
-                FROM vn_stat 
-                WHERE vstdate = ?
-                  AND cid = v.cid) > 1, 
-               'ตรวจสอบ', 
-               IF(vp.claim_code = td.claimcode, 'ตรง', 
-                  IF(td.claimcode IS NULL, 'ยังไม่ได้นำเข้า', 'ไม่ตรง')
-               )
-            ) AS check_claimcode,
+            IF(vp.claim_code = td.claimcode, 'ตรง', 'ไม่ตรง') AS check_claimcode,
             v.uc_money,
             CONVERT(k.department USING utf8) AS department,
             COUNT(DISTINCT v.cid) AS cc_cid
@@ -45,7 +38,7 @@ export async function getHosxpVisits(visitDate) {
         WHERE v.vstdate = ?
           AND py.hipdata_code IN ('UCS', 'OFC')
         GROUP BY v.vn
-        ORDER BY vp.Auth_Code, vp.claim_code
+        ORDER BY vp.auth_code, vp.claim_code
     `;
 
     try {
@@ -85,13 +78,17 @@ export async function getHosxpTotalVisits(visitDate) {
 export async function saveTrackingResults(results) {
     const query = `
         INSERT INTO visit_tracking 
-        (vn, hn, cid, full_name, visit_date, pttype, pcode, uc_money, claim_code, authen_code_type, pttype_note, department, nhso_authen_code, authen_status, endpoint_status, color_status, staff, check_claimcode)
+        (vn, hn, cid, full_name, visit_date, pttype, pcode, uc_money, authcode, claim_code, nhso_claim_code, authen_code_type, pttype_note, department, nhso_authen_code, authen_status, endpoint_status, color_status, staff, check_claimcode, an)
         VALUES ?
         ON DUPLICATE KEY UPDATE
+        an = VALUES(an),
+        full_name = VALUES(full_name),
         pttype = VALUES(pttype),
         pcode = VALUES(pcode),
         uc_money = VALUES(uc_money),
+        authcode = VALUES(authcode),
         claim_code = VALUES(claim_code),
+        nhso_claim_code = VALUES(nhso_claim_code),
         authen_code_type = VALUES(authen_code_type),
         pttype_note = VALUES(pttype_note),
         department = VALUES(department),
@@ -106,9 +103,9 @@ export async function saveTrackingResults(results) {
 
     const values = results.map(r => [
         r.vn, r.hn, r.cid, r.full_name, r.visit_date, r.pttype,
-        r.pcode, r.uc_money, r.claim_code, r.authen_code_type, r.pttype_note, r.department,
+        r.pcode, r.uc_money, r.authcode, r.claim_code, r.nhso_claim_code, r.authen_code_type, r.pttype_note, r.department,
         r.nhso_authen_code, r.authen_status, r.endpoint_status, r.color_status,
-        r.staff, r.check_claimcode
+        r.staff, r.check_claimcode, r.an
     ]);
 
     try {
@@ -206,7 +203,7 @@ function parseExcelDate(val) {
 
     // กรณีเป็น String
     const str = String(val).trim();
-    
+
     // ตรวจสอบรูปแบบ YYYY-MM-DD (เช่น "2026-06-18 12:00:00")
     const ymdRegex = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/;
     const ymdMatch = str.match(ymdRegex);
@@ -326,7 +323,7 @@ export async function saveAuthenLog(excelData, visitDate) {
  */
 export async function checkNhsoStatusViaApi(cid, date, serviceCode, token) {
     const url = `${process.env.NHSO_API_URL}?personalId=${cid}&serviceDate=${date}&serviceCode=${serviceCode}`;
-    
+
     try {
         const response = await fetch(url, {
             method: 'GET',

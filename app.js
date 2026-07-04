@@ -18,7 +18,9 @@ const getInitialState = () => {
             querySortDesc: false,
             trackerSortBy: '',
             trackerSortDesc: false,
-            trackerSearchFilter: ''
+            trackerSearchFilter: '',
+            trackerCurrentPage: 1,
+            trackerPageSize: 10
         };
     }
     return {
@@ -31,7 +33,9 @@ const getInitialState = () => {
         querySortDesc: false,
         trackerSortBy: '',
         trackerSortDesc: false,
-        trackerSearchFilter: ''
+        trackerSearchFilter: '',
+        trackerCurrentPage: 1,
+        trackerPageSize: 10
     };
 };
 
@@ -95,6 +99,7 @@ function setupEventListeners() {
                 appState.trackerSortBy = field;
                 appState.trackerSortDesc = false;
             }
+            appState.trackerCurrentPage = 1; // Reset to first page on sort
             renderTrackerTable();
         });
     });
@@ -102,6 +107,7 @@ function setupEventListeners() {
     // Homepage table search input
     document.getElementById('tracker-search-input')?.addEventListener('input', (e) => {
         appState.trackerSearchFilter = e.target.value;
+        appState.trackerCurrentPage = 1; // Reset to first page on search
         renderTrackerTable();
     });
     
@@ -413,6 +419,7 @@ async function loadDashboardData() {
             const data = response.data;
             // data now contains { trackingData: [], hosxpStats: { totalPersons: X, totalVisits: Y } }
             appState.rawTableData = data.trackingData || [];
+            appState.trackerCurrentPage = 1; // Reset to first page when loading new data
             renderTrackerTable();
             ui.updateStats(appState.rawTableData, data.hosxpStats);
         }
@@ -463,7 +470,12 @@ function getFilteredAndSortedTrackerData() {
 
 function renderTrackerTable() {
     const data = getFilteredAndSortedTrackerData();
-    ui.renderTable(data, appState.trackerSortBy, appState.trackerSortDesc);
+    ui.renderTable(data, appState.trackerSortBy, appState.trackerSortDesc, appState.trackerCurrentPage, appState.trackerPageSize);
+}
+
+window.handlePaginationChange = function(pageNum) {
+    appState.trackerCurrentPage = pageNum;
+    renderTrackerTable();
 }
 
 function handleExportErrors() {
@@ -542,7 +554,19 @@ function handleQueryTemplateSelect(e) {
     const queryId = e.target.value;
     const selected = appState.savedQueries.find(q => String(q.id) === String(queryId));
     if (selected) {
-        document.getElementById('sql-editor').value = selected.query_text;
+        let queryText = selected.query_text;
+        const date = document.getElementById('query-visit-date').value || new Date().toISOString().split('T')[0];
+        const hipdataCodes = document.getElementById('query-hipdata').value || "'UCS'";
+        
+        // แปลง $__timeFilter(column) เป็นวันที่ที่เลือกจริงๆ ในหน้าจอ Editor ให้ผู้ใช้เห็นและแก้ไขได้ง่าย
+        queryText = queryText.replace(/\$__timeFilter\(([^)]+)\)/gi, (match, column) => {
+            return `${column.trim()} = '${date}'`;
+        });
+        
+        // แปลง $hipdata_code เป็นสิทธิที่เลือก
+        queryText = queryText.replace(/\$hipdata_code/gi, hipdataCodes);
+        
+        document.getElementById('sql-editor').value = queryText;
         document.getElementById('query-db-type').value = selected.db_type;
         document.getElementById('new-query-name').value = selected.name;
     }

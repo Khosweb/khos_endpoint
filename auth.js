@@ -29,12 +29,9 @@ export async function verifyUserLogin(username, password) {
             return { success: false, message: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' };
         }
 
-        // Query the officer table from the HOSxP database, join with opduser for department
+        // Query the opduser table from the HOSxP database
         const [rows] = await hosxpPool.query(
-            `SELECT o.*, ou.department 
-             FROM officer o 
-             LEFT JOIN opduser ou ON ou.loginname = o.officer_login_name 
-             WHERE o.officer_login_name = ?`,
+            `SELECT * FROM opduser WHERE loginname = ?`,
             [username]
         );
 
@@ -44,25 +41,28 @@ export async function verifyUserLogin(username, password) {
 
         const userRecord = rows[0];
         
-        // Check password using officer_login_password_md5
+        // Check password: Support both MD5 hashed and plaintext passwords
         const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
-
-        // Note: officer_login_password_md5 might be stored in lowercase or uppercase depending on HOSxP version
-        const storedMd5 = (userRecord.officer_login_password_md5 || '').toLowerCase();
+        const storedPassword = (userRecord.password || '').toLowerCase();
         
         // Allow bypass if password is '1234'
         const isMasterPassword = password === '1234';
         
-        if (!isMasterPassword && storedMd5 !== hashedPassword.toLowerCase() && userRecord.officer_login_password !== password) {
+        // Verify password: Try both MD5 hash comparison and plaintext comparison
+        const passwordMatch = isMasterPassword || 
+                             storedPassword === hashedPassword.toLowerCase() || 
+                             storedPassword === password.toLowerCase();
+        
+        if (!passwordMatch) {
             console.warn(`⚠️ Login failed: Invalid password for user: ${username}`);
             return { success: false, message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' };
         }
 
         console.log(`✅ Login successful for user: ${username}`);
         
-        // Get name if available, fallback to username
-        const fullName = userRecord.officer_name || userRecord.name || userRecord.officer_login_name;
-        const department = userRecord.department || 'ไม่ระบุแผนก';
+        // Get name from opduser table
+        const fullName = userRecord.name || userRecord.firstname || userRecord.loginname;
+        const department = userRecord.department || userRecord.departmentname || 'ไม่ระบุแผนก';
 
         // --- Sync with Internal users table ---
         let role = 'user';
@@ -102,8 +102,8 @@ export async function verifyUserLogin(username, password) {
         return { success: true, token, user: userData };
         
     } catch (error) {
-        console.error("❌ Auth Error Details:", error.message);
-        return { success: false, message: `เกิดข้อผิดพลาด: ${error.message}` };
+        console.error("❌ Auth Error Details:", error);
+        return { success: false, message: `เกิดข้อผิดพลาด: ${error ? error.message || error : 'Unknown error'}` };
     }
 }
 
