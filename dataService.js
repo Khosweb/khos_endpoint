@@ -8,6 +8,7 @@ export async function getHosxpVisits(visitDate) {
     const query = `
         SELECT 
             IF(ov.an is null,v.vn,"Admit") as vn,
+            v.hn,
             v.cid,
             CONCAT(p.pname, p.fname, ' ', p.lname) as fullName,
             v.vstdate as visitDate,

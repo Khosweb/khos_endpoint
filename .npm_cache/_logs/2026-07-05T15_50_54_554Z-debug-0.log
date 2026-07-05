@@ -1,0 +1,12 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@11.16.0
+2 info using node@v24.14.0
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/mac/Desktop/App/NAE_Manages01/.npmrc
+5 silly config load:file:/Users/mac/.npmrc
+6 silly config load:file:/usr/local/etc/npmrc
+7 verbose title npm run restart
+8 verbose argv "run" "restart"
+9 verbose logfile logs-max:10 dir:/Users/mac/Desktop/App/NAE_Manages01/.npm_cache/_logs/2026-07-05T15_50_54_554Z-
+10 verbose logfile /Users/mac/Desktop/App/NAE_Manages01/.npm_cache/_logs/2026-07-05T15_50_54_554Z-debug-0.log
+11 silly logfile done cleaning log files
