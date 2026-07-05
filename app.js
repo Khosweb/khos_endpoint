@@ -114,6 +114,12 @@ function setupEventListeners() {
         appState.trackerCurrentPage = 1; // Reset to first page on search
         renderTrackerTable();
     });
+
+    document.getElementById('tracker-page-size')?.addEventListener('change', (e) => {
+        appState.trackerPageSize = parseInt(e.target.value, 10);
+        appState.trackerCurrentPage = 1;
+        renderTrackerTable();
+    });
     
     // Export Data
     document.getElementById('export-error-btn')?.addEventListener('click', handleExportErrors);
