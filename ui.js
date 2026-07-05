@@ -207,20 +207,25 @@ export const ui = {
                 <td class="py-3.5 px-4 font-mono text-xs font-semibold">
                     <span class="text-blue-600 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100/50 dark:border-blue-900/30 rounded-lg px-2.5 py-1 inline-block">${item.an ? item.an : item.vn}</span>
                 </td>
-                <td class="py-3.5 px-4 text-slate-700 dark:text-slate-200 font-medium tracking-wide">${item.cid}</td>
+                <td class="py-3.5 px-4 text-slate-700 dark:text-slate-200 font-mono text-xs tracking-wide">${item.hn || '-'}</td>
+                <td class="py-3.5 px-4 text-slate-700 dark:text-slate-200 font-medium tracking-wide">${item.cid || '-'}</td>
                 <td class="py-3.5 px-4 text-xs font-semibold text-slate-700 dark:text-slate-200">${item.full_name || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${item.pttype || '-'}</td>
+                <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 font-semibold">${item.pcode || '-'}</td>
                 <td class="py-3.5 px-4 font-mono text-xs text-slate-600">
                     ${item.authcode ? `<span class="bg-slate-100 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 px-2 py-0.5 rounded font-medium dark:text-slate-300">${item.authcode}</span>` : '-'}
                 </td>
                 <td class="py-3.5 px-4 text-xs text-emerald-600 dark:text-emerald-400 font-bold">${item.claim_code || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-blue-600 dark:text-blue-400 font-bold">${item.nhso_claim_code || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-indigo-500 dark:text-indigo-400 font-semibold">${item.authen_code_type || '-'}</td>
+                <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${item.pttype_note || '-'}</td>
+                <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${item.staff || '-'}</td>
                 <td class="py-3.5 px-4 text-center">
                     <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-sm leading-none ${checkClaimClass}">
                         ${checkClaimVal}
                     </span>
                 </td>
+                <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 text-right">${item.uc_money !== undefined && item.uc_money !== null ? parseFloat(item.uc_money).toFixed(2) : '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400 font-medium">${item.department || '-'}</td>
                 <td class="py-3.5 px-4 text-center">
                     <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold shadow-sm leading-none ${statusClass}">
