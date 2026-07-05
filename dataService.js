@@ -76,43 +76,48 @@ export async function getHosxpTotalVisits(visitDate) {
  * บันทึกหรืออัปเดตข้อมูลผลการ Cross-check ลงใน Internal DB
  */
 export async function saveTrackingResults(results) {
+    if (!results || results.length === 0) return;
+
+    // หาหัวฟิลด์ (headers) จาก object แรกของ array เพื่อนำเข้าโดยไม่ต้องเปลี่ยนหัวฟิลด์
+    const columns = Object.keys(results[0]);
+    const columnsStr = columns.map(c => `\`${c}\``).join(', ');
+
+    // หาคอลัมน์ที่เป็น CLAIM CODE
+    const claimCodeField = columns.find(c => c.toUpperCase() === 'CLAIM CODE' || c.toUpperCase() === 'CLAIM_CODE');
+
+    if (claimCodeField) {
+        const claimCodes = results.map(r => r[claimCodeField]).filter(Boolean);
+        
+        if (claimCodes.length > 0) {
+            const placeholders = claimCodes.map(() => '?').join(',');
+            // ตรวจสอบข้อมูลซ้ำจาก CLAIM CODE ในตาราง authencode
+            const checkQuery = `SELECT \`${claimCodeField}\` FROM authencode WHERE \`${claimCodeField}\` IN (${placeholders})`;
+            
+            // ใช้ hosxpPool เพราะ authencode อยู่ใน HOSxP
+            const [existing] = await hosxpPool.query(checkQuery, claimCodes);
+            const existingCodes = new Set(existing.map(row => row[claimCodeField]));
+            
+            // กรองเอาเฉพาะข้อมูลที่ยังไม่มี CLAIM CODE ในฐานข้อมูล
+            results = results.filter(r => !existingCodes.has(r[claimCodeField]));
+        }
+    }
+
+    if (results.length === 0) {
+        console.log('✅ No new records to insert into authencode (All duplicates skipped).');
+        return;
+    }
+
     const query = `
-        INSERT INTO visit_tracking 
-        (vn, hn, cid, full_name, visit_date, pttype, pcode, uc_money, authcode, claim_code, nhso_claim_code, authen_code_type, pttype_note, department, nhso_authen_code, authen_status, endpoint_status, color_status, staff, check_claimcode, an)
+        INSERT INTO authencode 
+        (${columnsStr})
         VALUES ?
-        ON DUPLICATE KEY UPDATE
-        an = VALUES(an),
-        full_name = VALUES(full_name),
-        pttype = VALUES(pttype),
-        pcode = VALUES(pcode),
-        uc_money = VALUES(uc_money),
-        authcode = VALUES(authcode),
-        claim_code = VALUES(claim_code),
-        nhso_claim_code = VALUES(nhso_claim_code),
-        authen_code_type = VALUES(authen_code_type),
-        pttype_note = VALUES(pttype_note),
-        department = VALUES(department),
-        nhso_authen_code = VALUES(nhso_authen_code),
-        authen_status = VALUES(authen_status),
-        endpoint_status = VALUES(endpoint_status),
-        color_status = VALUES(color_status),
-        staff = VALUES(staff),
-        check_claimcode = VALUES(check_claimcode),
-        updated_at = CURRENT_TIMESTAMP
     `;
 
-    const values = results.map(r => [
-        r.vn, r.hn, r.cid, r.full_name, r.visit_date, r.pttype,
-        r.pcode, r.uc_money, r.authcode, r.claim_code, r.nhso_claim_code, r.authen_code_type, r.pttype_note, r.department,
-        r.nhso_authen_code, r.authen_status, r.endpoint_status, r.color_status,
-        r.staff, r.check_claimcode, r.an
-    ]);
+    const values = results.map(r => columns.map(col => r[col]));
 
     try {
-        if (values.length === 0) return;
-        await trackerPool.query(query, [values]);
-        console.log(`✅ Saved/Updated ${results.length} records to internal DB.`);
-
+        await hosxpPool.query(query, [values]);
+        console.log(`✅ Saved ${results.length} new records to authencode DB.`);
     } catch (error) {
         console.error('❌ Save Tracking Error:', error.message);
         throw error;
