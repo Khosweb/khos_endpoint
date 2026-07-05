@@ -16,6 +16,8 @@ const getInitialState = () => {
             currentQueryResults: [],
             querySortBy: '',
             querySortDesc: false,
+            queryCurrentPage: 1,
+            queryPageSize: 10,
             trackerSortBy: '',
             trackerSortDesc: false,
             trackerSearchFilter: '',
@@ -31,6 +33,8 @@ const getInitialState = () => {
         currentQueryResults: [],
         querySortBy: '',
         querySortDesc: false,
+        queryCurrentPage: 1,
+        queryPageSize: 10,
         trackerSortBy: '',
         trackerSortDesc: false,
         trackerSearchFilter: '',
@@ -591,9 +595,18 @@ async function handleRunQuery() {
             appState.currentQueryResults = response.data.rows;
             appState.querySortBy = '';
             appState.querySortDesc = false;
+            appState.queryCurrentPage = 1;
             
             const searchVal = document.getElementById('query-search-input').value;
-            ui.renderGrafanaTable(response.data.rows, '', false, searchVal, handleQueryHeaderClick);
+            ui.renderGrafanaTable(
+                response.data.rows, 
+                '', 
+                false, 
+                searchVal, 
+                handleQueryHeaderClick,
+                appState.queryCurrentPage,
+                appState.queryPageSize
+            );
             
             document.getElementById('query-info-msg').textContent = 
                 `พบผลลัพธ์ ${response.data.rows.length.toLocaleString()} แถว | ใช้เวลาประมวลผล ${response.data.executionTimeMs} ms`;
@@ -610,6 +623,21 @@ async function handleRunQuery() {
     }
 }
 
+// จัดการ Pagination สำหรับตาราง Query Results
+window.handleQueryPaginationChange = function(pageNum) {
+    appState.queryCurrentPage = pageNum;
+    const searchVal = document.getElementById('query-search-input').value;
+    ui.renderGrafanaTable(
+        appState.currentQueryResults, 
+        appState.querySortBy, 
+        appState.querySortDesc, 
+        searchVal, 
+        handleQueryHeaderClick,
+        appState.queryCurrentPage,
+        appState.queryPageSize
+    );
+}
+
 // จัดการคัดกรองการเรียงลำดับหัวข้อคอลัมน์
 function handleQueryHeaderClick(column) {
     if (appState.querySortBy === column) {
@@ -619,13 +647,16 @@ function handleQueryHeaderClick(column) {
         appState.querySortDesc = false;
     }
     
+    appState.queryCurrentPage = 1; // Reset to first page on sort
     const searchVal = document.getElementById('query-search-input').value;
     ui.renderGrafanaTable(
         appState.currentQueryResults, 
         appState.querySortBy, 
         appState.querySortDesc, 
         searchVal, 
-        handleQueryHeaderClick
+        handleQueryHeaderClick,
+        appState.queryCurrentPage,
+        appState.queryPageSize
     );
 }
 
@@ -735,7 +766,9 @@ function handleQuerySearch(e) {
         appState.querySortBy,
         appState.querySortDesc,
         query,
-        handleQueryHeaderClick
+        handleQueryHeaderClick,
+        appState.queryCurrentPage,
+        appState.queryPageSize
     );
 }
 

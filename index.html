@@ -570,6 +570,28 @@
                         </table>
                     </div>
 
+                    <!-- Pagination Controls for Grafana View -->
+                    <div id="query-pagination-container"
+                        class="px-6 py-4 bg-slate-50/50 dark:bg-slate-900/40 border-t border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between hidden">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            แสดง <span id="query-pagination-info">0-0</span> จากทั้งหมด <span
+                                id="query-pagination-total">0</span> รายการ
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button id="query-pagination-prev-btn"
+                                class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-xs font-semibold cursor-pointer flex items-center gap-1">
+                                <i class="fas fa-chevron-left text-xs"></i> ย้อนกลับ
+                            </button>
+                            <div id="query-pagination-buttons" class="flex items-center gap-1">
+                                <!-- Page buttons will be inserted here -->
+                            </div>
+                            <button id="query-pagination-next-btn"
+                                class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-xs font-semibold cursor-pointer flex items-center gap-1">
+                                ถัดไป <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- No Data message -->
                     <div id="query-no-data" class="p-16 text-center text-slate-500 dark:text-slate-400 bg-transparent">
                         <i

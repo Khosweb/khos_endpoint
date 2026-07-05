@@ -236,15 +236,15 @@ export const ui = {
         this.updatePaginationUI(totalRecords, currentPage, pageSize, totalPages);
     },
 
-    updatePaginationUI(totalRecords, currentPage, pageSize, totalPages) {
+    updatePaginationUI(totalRecords, currentPage, pageSize, totalPages, prefix = 'pagination', onPageChange = null) {
         if (typeof document === 'undefined') return;
         
-        const paginationContainer = document.getElementById('pagination-container');
-        const infoEl = document.getElementById('pagination-info');
-        const totalEl = document.getElementById('pagination-total');
-        const prevBtn = document.getElementById('pagination-prev-btn');
-        const nextBtn = document.getElementById('pagination-next-btn');
-        const buttonsContainer = document.getElementById('pagination-buttons');
+        const paginationContainer = document.getElementById(`${prefix}-container`);
+        const infoEl = document.getElementById(`${prefix}-info`);
+        const totalEl = document.getElementById(`${prefix}-total`);
+        const prevBtn = document.getElementById(`${prefix}-prev-btn`);
+        const nextBtn = document.getElementById(`${prefix}-next-btn`);
+        const buttonsContainer = document.getElementById(`${prefix}-buttons`);
         
         if (!paginationContainer) return;
 
@@ -261,14 +261,23 @@ export const ui = {
         if (infoEl) infoEl.textContent = `${startRecord}-${endRecord}`;
         if (totalEl) totalEl.textContent = totalRecords;
 
+        // Callback for page change
+        const handlePageChange = (pageNum) => {
+            if (onPageChange) {
+                onPageChange(pageNum);
+            } else {
+                this.goToPage(pageNum);
+            }
+        };
+
         // Update prev/next buttons
         if (prevBtn) {
             prevBtn.disabled = currentPage === 1;
-            prevBtn.onclick = () => this.goToPage(currentPage - 1);
+            prevBtn.onclick = () => handlePageChange(currentPage - 1);
         }
         if (nextBtn) {
             nextBtn.disabled = currentPage === totalPages;
-            nextBtn.onclick = () => this.goToPage(currentPage + 1);
+            nextBtn.onclick = () => handlePageChange(currentPage + 1);
         }
 
         // Generate page buttons
@@ -288,7 +297,7 @@ export const ui = {
             // Add first page button if needed
             if (startPage > 1) {
                 const btn = this.createPageButton(1, currentPage === 1);
-                btn.onclick = () => this.goToPage(1);
+                btn.onclick = () => handlePageChange(1);
                 buttonsContainer.appendChild(btn);
                 
                 if (startPage > 2) {
@@ -302,7 +311,7 @@ export const ui = {
             // Add numbered page buttons
             for (let i = startPage; i <= endPage; i++) {
                 const btn = this.createPageButton(i, currentPage === i);
-                btn.onclick = () => this.goToPage(i);
+                btn.onclick = () => handlePageChange(i);
                 buttonsContainer.appendChild(btn);
             }
 
@@ -315,7 +324,7 @@ export const ui = {
                     buttonsContainer.appendChild(dots);
                 }
                 const btn = this.createPageButton(totalPages, currentPage === totalPages);
-                btn.onclick = () => this.goToPage(totalPages);
+                btn.onclick = () => handlePageChange(totalPages);
                 buttonsContainer.appendChild(btn);
             }
         }
@@ -464,16 +473,18 @@ export const ui = {
         });
     },
 
-    renderGrafanaTable(rows, sortBy = '', sortDesc = false, searchFilter = '', onHeaderClick) {
+    renderGrafanaTable(rows, sortBy = '', sortDesc = false, searchFilter = '', onHeaderClick, currentPage = 1, pageSize = 20) {
         const thead = document.getElementById('query-table-head');
         const tbody = document.getElementById('query-table-body');
         const noData = document.getElementById('query-no-data');
+        const paginationContainer = document.getElementById('query-pagination-container');
         
         thead.innerHTML = '';
         tbody.innerHTML = '';
         
         if (!rows || rows.length === 0) {
             noData.classList.remove('hidden');
+            if (paginationContainer) paginationContainer.classList.add('hidden');
             return;
         }
         
@@ -537,8 +548,15 @@ export const ui = {
         });
         thead.appendChild(trHead);
         
-        // 4. วาดข้อมูล (Rows)
-        filteredRows.forEach((row, idx) => {
+        // 4. คำนวณ Pagination สำหรับ Grafana Table
+        const totalRecords = filteredRows.length;
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, totalRecords);
+        const displayRows = filteredRows.slice(startIndex, endIndex);
+
+        // 5. วาดข้อมูล (Rows)
+        displayRows.forEach((row, idx) => {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-slate-50/70 dark:hover:bg-slate-800/45 border-b border-slate-100 dark:border-slate-800/80 transition duration-150 text-slate-700 dark:text-slate-200';
             
@@ -585,6 +603,13 @@ export const ui = {
                 tr.appendChild(td);
             });
             tbody.appendChild(tr);
+        });
+
+        // 6. อัปเดต UI สำหรับ Pagination
+        this.updatePaginationUI(totalRecords, currentPage, pageSize, totalPages, 'query-pagination', (pageNum) => {
+            if (window.handleQueryPaginationChange) {
+                window.handleQueryPaginationChange(pageNum);
+            }
         });
     }
 };
