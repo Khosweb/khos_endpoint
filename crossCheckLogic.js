@@ -6,7 +6,7 @@ export function processCrossCheck(hosxpData, excelData) {
     // *หมายเหตุ: คอลัมน์ใน Excel ต้องถูก Map ให้ตรงกับชื่อ property เหล่านี้
     const excelMap = excelData.reduce((acc, row) => {
         // ดึงเลขบัตร (CID) - รองรับทั้งชื่อไทยและอังกฤษ
-        const cid = String(row['เลขบัตร'] || row.cid || row.CID || '').trim();
+        const cid = String(row['เลขบัตร'] || row['เลขบัตรประชาชน'] || row.cid || row.CID || '').trim();
         
         if (cid) {
             // ดึง Claim Code (Authen Code)

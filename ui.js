@@ -249,7 +249,7 @@ export const ui = {
         if (!paginationContainer) return;
 
         // Show/hide pagination container
-        if (totalRecords <= pageSize) {
+        if (totalRecords <= 0) {
             paginationContainer.classList.add('hidden');
             return;
         }

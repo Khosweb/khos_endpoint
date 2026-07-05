@@ -166,7 +166,7 @@ app.post('/api/sync/process', authenticateToken, upload.single('excel'), async (
         }
 
         const processedData = processCrossCheck(hosxpData, excelData);
-        await saveTrackingResults(processedData);
+        await saveTrackingResults(excelData); // Save the raw excel data to authencode without changing headers
         await executeAdvancedRunLogic(visit_date);
 
         res.json({
@@ -200,7 +200,7 @@ app.post('/api/sync/process-json', authenticateToken, async (req, res) => {
         }
 
         const processedData = processCrossCheck(hosxpData, excelData);
-        await saveTrackingResults(processedData);
+        await saveTrackingResults(excelData);
         await executeAdvancedRunLogic(visit_date);
 
         res.json({
@@ -300,29 +300,45 @@ app.post('/api/sync/nhso-direct-api', authenticateToken, async (req, res) => {
 app.get('/api/tracking/dashboard', authenticateToken, async (req, res) => {
     try {
         const { date, status } = req.query;
-        let query = 'SELECT * FROM visit_tracking WHERE 1=1';
-        const params = [];
-
-        if (date) {
-            query += ' AND visit_date = ?';
-            params.push(date);
-        }
-        if (status) {
-            query += ' AND color_status = ?';
-            params.push(status);
-        }
-
-        query += ' ORDER BY color_status ASC, full_name ASC';
-
-        const [rows] = await trackerPool.query(query, params);
         
         let hosxpStats = null;
         if (date) {
             hosxpStats = await getHosxpTotalVisits(date);
         }
 
+        // Merge HOSxP and authencode data on the fly
+        let hosxpData = [];
+        let authencodeData = [];
+        
+        if (date) {
+            hosxpData = await getHosxpVisits(date);
+            // Fetch authencode data for the same date (using Thai year conversion if needed, but for now fetch all or just cross check)
+            const [rows] = await hosxpPool.query("SELECT * FROM authencode");
+            authencodeData = rows;
+        } else {
+            // If no date, maybe limit or return empty to avoid massive data
+            hosxpData = await getHosxpVisits(new Date().toISOString().split('T')[0]);
+            const [rows] = await hosxpPool.query("SELECT * FROM authencode");
+            authencodeData = rows;
+        }
+
+        let processedData = processCrossCheck(hosxpData, authencodeData);
+
+        if (status) {
+            processedData = processedData.filter(item => item.color_status === status);
+        }
+
+        // Sort by color_status ASC, full_name ASC
+        const statusOrder = { 'RED': 1, 'YELLOW': 2, 'GREEN': 3 };
+        processedData.sort((a, b) => {
+            if (statusOrder[a.color_status] !== statusOrder[b.color_status]) {
+                return statusOrder[a.color_status] - statusOrder[b.color_status];
+            }
+            return (a.full_name || '').localeCompare(b.full_name || '');
+        });
+        
         res.json({
-            trackingData: rows,
+            trackingData: processedData,
             hosxpStats: hosxpStats
         });
     } catch (error) {
