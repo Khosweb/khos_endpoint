@@ -7,9 +7,7 @@ import { hosxpPool, trackerPool } from './db.js';
 export async function getHosxpVisits(visitDate) {
     const query = `
         SELECT 
-            v.vn,
-            ov.an,
-            CONCAT('cid_', v.cid) AS cid_check,
+            IF(ov.an is null,v.vn,"Admit") as vn,
             v.cid,
             CONCAT(p.pname, p.fname, ' ', p.lname) as fullName,
             v.vstdate as visitDate,
@@ -87,16 +85,16 @@ export async function saveTrackingResults(results) {
 
     if (claimCodeField) {
         const claimCodes = results.map(r => r[claimCodeField]).filter(Boolean);
-        
+
         if (claimCodes.length > 0) {
             const placeholders = claimCodes.map(() => '?').join(',');
             // ตรวจสอบข้อมูลซ้ำจาก CLAIM CODE ในตาราง authencode
             const checkQuery = `SELECT \`${claimCodeField}\` FROM authencode WHERE \`${claimCodeField}\` IN (${placeholders})`;
-            
+
             // ใช้ hosxpPool เพราะ authencode อยู่ใน HOSxP
             const [existing] = await hosxpPool.query(checkQuery, claimCodes);
             const existingCodes = new Set(existing.map(row => row[claimCodeField]));
-            
+
             // กรองเอาเฉพาะข้อมูลที่ยังไม่มี CLAIM CODE ในฐานข้อมูล
             results = results.filter(r => !existingCodes.has(r[claimCodeField]));
         }
