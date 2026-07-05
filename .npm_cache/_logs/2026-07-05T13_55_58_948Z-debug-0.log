@@ -10,3 +10,9 @@
 9 verbose logfile logs-max:10 dir:/Users/mac/Desktop/App/NAE_Manages01/.npm_cache/_logs/2026-07-05T13_55_58_948Z-
 10 verbose logfile /Users/mac/Desktop/App/NAE_Manages01/.npm_cache/_logs/2026-07-05T13_55_58_948Z-debug-0.log
 11 silly logfile done cleaning log files
+12 verbose cwd /Users/mac/Desktop/App/NAE_Manages01
+13 verbose os Darwin 25.5.0
+14 verbose node v24.14.0
+15 verbose npm  v11.16.0
+16 verbose exit 0
+17 info ok
