@@ -155,11 +155,8 @@ function handleApiResponse(response) {
     if (!response.ok) {
         if (response.status === 401) {
             console.warn('Session expired or unauthorized. Logging out.');
-            if (!isLoggingOut) {
-                isLoggingOut = true;
-                alert('เซสชั่นหมดอายุหรือคุณไม่มีสิทธิ์เข้าใช้งาน กรุณาเข้าสู่ระบบใหม่');
-                handleLogout();
-            }
+            alert('เซสชั่นหมดอายุหรือคุณไม่มีสิทธิ์เข้าใช้งาน กรุณาเข้าสู่ระบบใหม่');
+            handleLogout();
             return false;
         }
         if (response.status === 403) {

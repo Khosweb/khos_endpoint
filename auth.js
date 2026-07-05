@@ -128,11 +128,11 @@ export function authenticateToken(req, res, next) {
                 });
             }
             
-            // Any other JWT error (invalid signature, malformed, etc.) → 403
+            // Any other JWT error (invalid signature, malformed, etc.) → 401
             console.error(`❌ JWT Verification Failed: ${err.message}`);
-            return res.status(403).json({ 
+            return res.status(401).json({ 
                 success: false,
-                message: 'Forbidden', 
+                message: 'Unauthorized: Invalid Token', 
                 error: err.message 
             });
         }
