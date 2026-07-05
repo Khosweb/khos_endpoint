@@ -56,8 +56,12 @@ export function processCrossCheck(hosxpData, excelData) {
             }
         }
 
-        // ใช้ผลการเช็คที่คำนวณมาจากฝั่งฐานข้อมูล (dataService.js)
-        checkClaimcode = patient.check_claimcode;
+        // คำนวณ checkClaimcode จากการเทียบ Claim Code ของ HOSxP กับ Excel (ถ้ามีใน Excel)
+        if (nhso && authenCode) {
+            checkClaimcode = (patient.claim_code === authenCode) ? 'ตรง' : 'ไม่ตรง';
+        } else {
+            checkClaimcode = patient.check_claimcode || 'ยังไม่ได้นำเข้า';
+        }
 
         // ถ้ารหัส CLAIM (NHSO) ขึ้นต้นด้วย E ให้แสดงสถานะ "ปิด Endpointแล้ว" (สีเขียว)
         const currentNhsoClaim = String(patient.nhso_claim_code || '').trim().toUpperCase();

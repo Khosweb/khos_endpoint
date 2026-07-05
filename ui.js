@@ -216,7 +216,7 @@ export const ui = {
                     ${item.authcode ? `<span class="bg-slate-100 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 px-2 py-0.5 rounded font-medium dark:text-slate-300">${item.authcode}</span>` : '-'}
                 </td>
                 <td class="py-3.5 px-4 text-xs text-emerald-600 dark:text-emerald-400 font-bold">${item.claim_code || '-'}</td>
-                <td class="py-3.5 px-4 text-xs text-blue-600 dark:text-blue-400 font-bold">${item.nhso_claim_code || '-'}</td>
+                <td class="py-3.5 px-4 text-xs text-blue-600 dark:text-blue-400 font-bold">${item.nhso_authen_code || item.nhso_claim_code || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-indigo-500 dark:text-indigo-400 font-semibold">${item.authen_code_type || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${item.pttype_note || '-'}</td>
                 <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${item.staff || '-'}</td>
