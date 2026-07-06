@@ -22,9 +22,13 @@ export async function getHosxpVisits(visitDate) {
             vp.pttype_note,
             vp.staff,
             IF(
-                (SELECT COUNT(cid) FROM vn_stat WHERE vstdate = ? AND cid = v.cid) > 1,
-                "ตรวจสอบ",
-                IF(vp.claim_code = td.claimcode, "ตรง", IF(td.claimcode IS NULL, "ยังไม่ได้นำเข้า", "ไม่ตรง"))
+                vp.claim_code = td.claimcode, 
+                "ตรง", 
+                IF(
+                    (SELECT COUNT(cid) FROM vn_stat WHERE vstdate = ? AND cid = v.cid) > 1,
+                    "ตรวจสอบ",
+                    IF(td.claimcode IS NULL, "ยังไม่ได้นำเข้า", "ไม่ตรง")
+                )
             ) AS check_claimcode,
             v.uc_money,
             k.department,
