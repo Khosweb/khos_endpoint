@@ -30,7 +30,7 @@ export async function getHosxpVisits(visitDate) {
                     IF(td.claimcode IS NULL, "ยังไม่ได้นำเข้า", "ไม่ตรง")
                 )
             ) AS check_claimcode,
-            v.uc_money,
+            IF(v.uc_money = 0 OR v.uc_money IS NULL, v.item_money, v.uc_money) AS uc_money,
             k.department,
             COUNT(DISTINCT v.cid) AS cc_cid
         FROM vn_stat v
@@ -65,7 +65,7 @@ export async function getHosxpTotalVisits(visitDate) {
         SELECT 
             COUNT(DISTINCT hn) as totalPersons,
             COUNT(vn) as totalVisits,
-            SUM(uc_money) as totalUcMoney
+            SUM(IF(uc_money = 0 OR uc_money IS NULL, item_money, uc_money)) as totalUcMoney
         FROM vn_stat 
         WHERE vstdate = ?
     `;
