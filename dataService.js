@@ -7,7 +7,8 @@ import { hosxpPool, trackerPool } from './db.js';
 export async function getHosxpVisits(visitDate) {
     const query = `
         SELECT 
-            IF(ov.an is null,v.vn,"Admit") as vn,
+            IF(ov.an is null, v.vn, "Admit") as vn,
+            CONCAT("cid_", v.cid) as cid_check,
             v.hn,
             v.cid,
             CONCAT(p.pname, p.fname, ' ', p.lname) as fullName,
@@ -20,9 +21,13 @@ export async function getHosxpVisits(visitDate) {
             td.authen_code_type,
             vp.pttype_note,
             vp.staff,
-            IF(vp.claim_code = td.claimcode, 'ตรง', 'ไม่ตรง') AS check_claimcode,
+            IF(
+                (SELECT COUNT(cid) FROM vn_stat WHERE vstdate = ? AND cid = v.cid) > 1,
+                "ตรวจสอบ",
+                IF(vp.claim_code = td.claimcode, "ตรง", IF(td.claimcode IS NULL, "ยังไม่ได้นำเข้า", "ไม่ตรง"))
+            ) AS check_claimcode,
             v.uc_money,
-            CONVERT(k.department USING utf8) AS department,
+            CAST(CONVERT(k.department USING utf8) AS binary) AS department,
             COUNT(DISTINCT v.cid) AS cc_cid
         FROM vn_stat v
         LEFT JOIN patient p ON p.hn = v.hn
@@ -35,7 +40,6 @@ export async function getHosxpVisits(visitDate) {
         LEFT OUTER JOIN ovst ov ON ov.vn = v.vn
         LEFT JOIN kskdepartment k ON k.depcode = ov.main_dep
         WHERE v.vstdate = ?
-          AND py.hipdata_code IN ('UCS', 'OFC')
         GROUP BY v.vn
         ORDER BY vp.auth_code, vp.claim_code
     `;
