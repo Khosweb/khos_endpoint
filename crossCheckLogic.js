@@ -9,9 +9,13 @@ export function processCrossCheck(hosxpData, excelData) {
         const cid = String(row['เลขบัตร'] || row['เลขบัตรประชาชน'] || row.cid || row.CID || '').trim();
         
         if (cid) {
-            // ดึง Claim Code (Authen Code)
             const authenCode = row['CLAIM CODE'] || row.authenCode || row.CLAIM_CODE || null;
             const channel = String(row['ช่องทางการขอ Authen Code'] || '');
+            
+            // หากมีข้อมูล E อยู่แล้ว อย่าให้ P มาทับ
+            if (acc[cid] && acc[cid].authenCode && String(acc[cid].authenCode).toUpperCase().startsWith('E') && (!authenCode || !String(authenCode).toUpperCase().startsWith('E'))) {
+                return acc;
+            }
             
             acc[cid] = {
                 authenCode: authenCode,
@@ -56,8 +60,11 @@ export function processCrossCheck(hosxpData, excelData) {
             }
         }
 
-        // คำนวณ checkClaimcode จากการเทียบ Claim Code ของ HOSxP กับ Excel (ถ้ามีใน Excel)
-        if (nhso && authenCode) {
+        // ให้ความสำคัญกับค่า check_claimcode จาก SQL เป็นหลัก (เช่น ถ้าเป็น 'ตรวจสอบ', 'ตรง', 'ไม่ตรง' ให้คงไว้)
+        // ถ้าค่าจาก SQL คืนค่ามา ให้ใช้ค่านั้น ถ้าไม่มีค่อยคำนวณใหม่
+        if (patient.check_claimcode && patient.check_claimcode !== 'ยังไม่ได้นำเข้า' && patient.check_claimcode !== '') {
+            checkClaimcode = patient.check_claimcode;
+        } else if (nhso && authenCode) {
             checkClaimcode = (patient.claim_code === authenCode) ? 'ตรง' : 'ไม่ตรง';
         } else {
             checkClaimcode = patient.check_claimcode || 'ยังไม่ได้นำเข้า';
