@@ -27,7 +27,7 @@ export async function getHosxpVisits(visitDate) {
                 IF(vp.claim_code = td.claimcode, "ตรง", IF(td.claimcode IS NULL, "ยังไม่ได้นำเข้า", "ไม่ตรง"))
             ) AS check_claimcode,
             v.uc_money,
-            CAST(CONVERT(k.department USING utf8) AS binary) AS department,
+            k.department,
             COUNT(DISTINCT v.cid) AS cc_cid
         FROM vn_stat v
         LEFT JOIN patient p ON p.hn = v.hn
