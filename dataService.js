@@ -138,32 +138,58 @@ export async function executeAdvancedRunLogic(visitDate) {
         -- 3. Import ข้อมูลและแปลงวันที่เป็น ค.ศ. ทันที
         INSERT INTO temp_authen_code (
             cid, name, claimcode, status_use, service, 
-            authen_code_type, date_service, date_authen, dateser
+            authen_code_type, date_service, date_authen, dateser, flag
         )
         SELECT 
             \`เลขบัตร\`, \`ชื่อ-สกุล\`, \`CLAIM CODE\`, \`รหัสการเข้ารับบริการ\`, \`บริการ\`, 
             \`ช่องทางการขอ Authen Code\`, \`วันที่เข้ารับบริการ\`, \`วันที่บันทึก Authen Code\`,
-            @target_date -- ใช้ค่าตัวแปรโดยตรงเพื่อความแม่นยำ
+            @target_date, NULL
         FROM authencode
-        WHERE DATE(\`วันที่เข้ารับบริการ\`) = @thai_date;
+        WHERE DATE(\`วันที่เข้ารับบริการ\`) = @thai_date
+          AND \`CLAIM CODE\` LIKE 'E%';
 
         -- 4. Mark ตัวเลือกที่ดีที่สุด (Flag 'D') 
         -- เลือก E ล่าสุด ถ้าไม่มีเอา P ล่าสุด ของแต่ละ CID ในวันนั้น
         UPDATE temp_authen_code t
         JOIN (
-            SELECT cid, claimcode,
-                ROW_NUMBER() OVER (
-                    PARTITION BY cid 
-                    ORDER BY 
-                        CASE WHEN claimcode LIKE 'E%' THEN 1 ELSE 2 END ASC, 
-                        date_authen DESC
-                ) as ranking
-            FROM temp_authen_code
-            WHERE dateser = @target_date AND status_use = 'E'
-        ) ranking_table ON t.cid = ranking_table.cid AND t.claimcode = ranking_table.claimcode
-        SET t.flag = 'D'
-        WHERE ranking_table.ranking = 1 
-        AND t.dateser = @target_date;
+            SELECT x.cid, x.dateser, x.claimcode
+            FROM temp_authen_code x
+            WHERE x.status_use = 'E' AND x.dateser = @target_date
+              AND (
+                   -- กรณีมี E ให้เลือก E ล่าสุด
+                   (x.claimcode LIKE 'E%'
+                    AND x.date_authen = (
+                        SELECT MAX(t1.date_authen)
+                        FROM temp_authen_code t1
+                        WHERE t1.cid = x.cid
+                          AND t1.status_use = 'E'
+                          AND t1.claimcode LIKE 'E%'
+                          AND t1.dateser = @target_date
+                    )
+                   )
+                   OR
+                   -- กรณีไม่มี E เลย → เอา P ล่าสุด
+                   (x.claimcode LIKE 'P%'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM temp_authen_code t2
+                        WHERE t2.cid = x.cid
+                          AND t2.status_use = 'E'
+                          AND t2.claimcode LIKE 'E%'
+                          AND t2.dateser = @target_date
+                    )
+                    AND x.date_authen = (
+                        SELECT MAX(t3.date_authen)
+                        FROM temp_authen_code t3
+                        WHERE t3.cid = x.cid
+                          AND t3.status_use = 'E'
+                          AND t3.claimcode LIKE 'P%'
+                          AND t3.dateser = @target_date
+                    )
+                   )
+              )
+        ) y
+        ON t.cid = y.cid AND t.dateser = y.dateser AND t.claimcode = y.claimcode 
+        SET t.flag = 'D';
 
         -- 5. Update ข้อมูลเข้าตารางหลัก (visit_pttype)
         UPDATE visit_pttype vp
